@@ -3,21 +3,29 @@ package najah.eng.Application.Persistence;
 import najah.eng.Application.Domain.Vehicle;
 
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 
 public class VehicleRepository {
 
-    private static final String FILE_PATH = "C:\\Users\\admin\\Desktop\\Vehicle Rental Management System\\Vehicle-Rental-Management-System\\src\\vehicles.txt";
-
     public ArrayList<Vehicle> findAvailableVehicles() {
+
         ArrayList<Vehicle> vehicles = new ArrayList<>();
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
+        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("vehicles.txt");
+
+        if (inputStream == null) {
+            return vehicles;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+
             String line;
 
             while ((line = reader.readLine()) != null) {
+
                 String[] parts = line.split(",");
 
                 if (parts.length == 3 && parts[2].trim().equalsIgnoreCase("Available")) {
