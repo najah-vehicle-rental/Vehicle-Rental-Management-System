@@ -1,0 +1,2 @@
+fadi,1234
+manager,pass
