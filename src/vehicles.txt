@@ -1,0 +1,4 @@
+1,Toyota Corolla,Available
+2,Honda Civic,Unavailable
+3,Kia Sportage,Available
+4,BMW X5,Unavailable

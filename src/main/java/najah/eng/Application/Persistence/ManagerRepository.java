@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class ManagerRepository {
 
-    private static final String FILE_PATH = "src/managers.txt";
+    private static final String FILE_PATH = "C:\\Users\\admin\\Desktop\\Vehicle Rental Management System\\Vehicle-Rental-Management-System\\src\\managers.txt";
 
     public Manager findByUsername(String username) {
 
@@ -20,8 +20,11 @@ public class ManagerRepository {
 
                 String[] parts = line.split(",");
 
-                if (parts.length == 2 && parts[0].equals(username)) {
-                    return new Manager(parts[0], parts[1]);
+                if (parts.length == 2 &&
+                        parts[0].trim().equals(username.trim()) &&
+                        parts[1].trim() != null) {
+
+                    return new Manager(parts[0].trim(), parts[1].trim());
                 }
             }
 

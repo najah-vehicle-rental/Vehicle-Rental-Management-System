@@ -1,2 +1,3 @@
 fadi,1234
+moha,salah99
 manager,pass
