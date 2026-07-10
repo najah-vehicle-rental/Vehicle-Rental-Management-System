@@ -103,6 +103,13 @@ public class Main {
         try {
             int rentalDays = Integer.parseInt(daysText);
 
+            if (!rentalService.isRentalDurationValid(rentalDays)) {
+                System.out.println(
+                        "Rental period must be between 1 and 30 days."
+                );
+                return;
+            }
+
             boolean rented = rentalService.rentVehicle(
                     vehicleId,
                     customerName,

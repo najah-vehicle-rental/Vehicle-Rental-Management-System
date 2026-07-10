@@ -7,6 +7,9 @@ import najah.eng.Application.Persistence.VehicleRepository;
 
 public class RentalService {
 
+    private static final int MIN_RENTAL_DAYS = 1;
+    private static final int MAX_RENTAL_DAYS = 30;
+
     private VehicleRepository vehicleRepository;
     private RentalRepository rentalRepository;
 
@@ -27,6 +30,10 @@ public class RentalService {
         }
 
         if (!vehicle.getStatus().equalsIgnoreCase("Available")) {
+            return false;
+        }
+
+        if (!isRentalDurationValid(rentalDays)) {
             return false;
         }
 
@@ -57,5 +64,10 @@ public class RentalService {
         }
 
         return vehicle.getStatus().equalsIgnoreCase("Available");
+    }
+
+    public boolean isRentalDurationValid(int rentalDays) {
+        return rentalDays >= MIN_RENTAL_DAYS
+                && rentalDays <= MAX_RENTAL_DAYS;
     }
 }
