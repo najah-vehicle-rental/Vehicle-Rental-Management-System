@@ -1,4 +1,4 @@
-1,Toyota Corolla,Available
+1,Toyota Corolla,Rented
 2,Honda Civic,Unavailable
-3,Kia Sportage,Available
-4,BMW X5,Unavailable
+3,Kia Sportage,Rented
+4,BMW X5,Rented
