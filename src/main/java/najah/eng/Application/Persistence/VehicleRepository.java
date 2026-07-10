@@ -2,41 +2,119 @@ package najah.eng.Application.Persistence;
 
 import najah.eng.Application.Domain.Vehicle;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.List;
 
 public class VehicleRepository {
 
-    public ArrayList<Vehicle> findAvailableVehicles() {
+    private final Path filePath = Path.of(
+            "src",
+            "main",
+            "resources",
+            "vehicles.txt"
+    );
 
+    public ArrayList<Vehicle> findAvailableVehicles() {
         ArrayList<Vehicle> vehicles = new ArrayList<>();
 
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("vehicles.txt");
+        try {
+            List<String> lines = Files.readAllLines(filePath);
 
-        if (inputStream == null) {
-            return vehicles;
-        }
+            for (String line : lines) {
+                Vehicle vehicle = createVehicle(line);
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-
-                String[] parts = line.split(",");
-
-                if (parts.length == 3 && parts[2].trim().equalsIgnoreCase("Available")) {
-                    vehicles.add(new Vehicle(parts[0].trim(), parts[1].trim(), parts[2].trim()));
+                if (vehicle != null &&
+                        vehicle.getStatus().equalsIgnoreCase("Available")) {
+                    vehicles.add(vehicle);
                 }
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            System.out.println("Error reading vehicles file.");
         }
 
         return vehicles;
+    }
+
+    public Vehicle findById(String vehicleId) {
+        try {
+            List<String> lines = Files.readAllLines(filePath);
+
+            for (String line : lines) {
+                Vehicle vehicle = createVehicle(line);
+
+                if (vehicle != null &&
+                        vehicle.getId().equals(vehicleId)) {
+                    return vehicle;
+                }
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error reading vehicles file.");
+        }
+
+        return null;
+    }
+
+    public boolean updateStatus(String vehicleId, String newStatus) {
+        try {
+            List<String> lines = Files.readAllLines(filePath);
+            List<String> updatedLines = new ArrayList<>();
+            boolean found = false;
+
+            for (String line : lines) {
+                Vehicle vehicle = createVehicle(line);
+
+                if (vehicle != null &&
+                        vehicle.getId().equals(vehicleId)) {
+
+                    String updatedLine =
+                            vehicle.getId() + "," +
+                                    vehicle.getName() + "," +
+                                    newStatus;
+
+                    updatedLines.add(updatedLine);
+                    found = true;
+
+                } else {
+                    updatedLines.add(line);
+                }
+            }
+
+            if (!found) {
+                return false;
+            }
+
+            Files.write(
+                    filePath,
+                    updatedLines,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.CREATE
+            );
+
+            return true;
+
+        } catch (IOException e) {
+            System.out.println("Error updating vehicle status.");
+            return false;
+        }
+    }
+
+    private Vehicle createVehicle(String line) {
+        String[] parts = line.split(",");
+
+        if (parts.length != 3) {
+            return null;
+        }
+
+        return new Vehicle(
+                parts[0].trim(),
+                parts[1].trim(),
+                parts[2].trim()
+        );
     }
 }
