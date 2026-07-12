@@ -1,25 +1,33 @@
 package najah.eng.Application.presentation;
 
+import najah.eng.Application.Domain.Rental;
 import najah.eng.Application.Domain.Vehicle;
 import najah.eng.Application.Persistence.RentalRepository;
 import najah.eng.Application.service.AuthService;
+import najah.eng.Application.service.BillingService;
 import najah.eng.Application.service.EmailNotificationService;
 import najah.eng.Application.service.NotificationService;
 import najah.eng.Application.service.ReminderService;
 import najah.eng.Application.service.RentalService;
+import najah.eng.Application.service.ReturnService;
 import najah.eng.Application.service.VehicleService;
 
 import java.util.ArrayList;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) {
+        Locale.setDefault(Locale.US);
+
         Scanner scanner = new Scanner(System.in);
 
         AuthService authService = new AuthService();
         VehicleService vehicleService = new VehicleService();
         RentalService rentalService = new RentalService();
+        ReturnService returnService = new ReturnService();
+        BillingService billingService = new BillingService();
 
         RentalRepository rentalRepository =
                 new RentalRepository();
@@ -49,12 +57,7 @@ public class Main {
                 }
             }
 
-            System.out.println("1. View Available Vehicles");
-            System.out.println("2. Rent a Vehicle");
-            System.out.println("3. Generate Expiry Reminders");
-            System.out.println("4. Logout");
-            System.out.println("5. Exit");
-            System.out.print("Choose: ");
+            showMenu();
 
             String choice = scanner.nextLine();
 
@@ -65,13 +68,20 @@ public class Main {
                 rentVehicle(scanner, rentalService);
 
             } else if (choice.equals("3")) {
-                generateReminders(reminderService);
+                returnVehicle(
+                        scanner,
+                        returnService,
+                        billingService
+                );
 
             } else if (choice.equals("4")) {
+                generateReminders(reminderService);
+
+            } else if (choice.equals("5")) {
                 authService.logout();
                 System.out.println("Logged out.");
 
-            } else if (choice.equals("5")) {
+            } else if (choice.equals("6")) {
                 break;
 
             } else {
@@ -80,6 +90,16 @@ public class Main {
         }
 
         scanner.close();
+    }
+
+    private static void showMenu() {
+        System.out.println("1. View Available Vehicles");
+        System.out.println("2. Rent a Vehicle");
+        System.out.println("3. Return a Vehicle");
+        System.out.println("4. Generate Expiry Reminders");
+        System.out.println("5. Logout");
+        System.out.println("6. Exit");
+        System.out.print("Choose: ");
     }
 
     private static void showAvailableVehicles(
@@ -153,6 +173,58 @@ public class Main {
 
         } catch (NumberFormatException e) {
             System.out.println("Rental days must be a number.");
+        }
+    }
+
+    private static void returnVehicle(
+            Scanner scanner,
+            ReturnService returnService,
+            BillingService billingService) {
+
+        System.out.print("Vehicle ID: ");
+        String vehicleId = scanner.nextLine();
+
+        Rental rental =
+                returnService.getActiveRental(vehicleId);
+
+        if (rental == null) {
+            System.out.println(
+                    "Vehicle return failed. No active rental found."
+            );
+            return;
+        }
+
+        double totalCost =
+                billingService.calculateRentalCost(
+                        rental.getRentalDays()
+                );
+
+        boolean returned =
+                returnService.returnVehicle(vehicleId);
+
+        if (returned) {
+            System.out.println("Vehicle returned successfully.");
+            System.out.println(
+                    "Rental Days: " +
+                            rental.getRentalDays()
+            );
+
+            System.out.printf(
+                    Locale.US,
+                    "Daily Rate: %.2f ILS%n",
+                    billingService.getDailyRate()
+            );
+
+            System.out.printf(
+                    Locale.US,
+                    "Total Rental Cost: %.2f ILS%n",
+                    totalCost
+            );
+
+        } else {
+            System.out.println(
+                    "Vehicle return failed. Check the vehicle and rental status."
+            );
         }
     }
 
