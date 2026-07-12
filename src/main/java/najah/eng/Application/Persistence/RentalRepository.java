@@ -43,6 +43,7 @@ public class RentalRepository {
 
         } catch (IOException e) {
             System.out.println("Error saving rental.");
+            System.out.println("Path: " + filePath);
             return false;
         }
     }
@@ -51,6 +52,8 @@ public class RentalRepository {
         ArrayList<Rental> rentals = new ArrayList<>();
 
         if (!Files.exists(filePath)) {
+            System.out.println("Rentals file not found.");
+            System.out.println("Path: " + filePath);
             return rentals;
         }
 
@@ -68,15 +71,88 @@ public class RentalRepository {
 
         } catch (IOException e) {
             System.out.println("Error reading rentals file.");
+            System.out.println("Path: " + filePath);
         }
 
         return rentals;
+    }
+
+    public Rental findActiveRentalByVehicleId(String vehicleId) {
+        ArrayList<Rental> rentals = findActiveRentals();
+
+        for (Rental rental : rentals) {
+            if (rental.getVehicleId().equals(vehicleId)) {
+                return rental;
+            }
+        }
+
+        return null;
+    }
+
+    public boolean closeActiveRental(String vehicleId) {
+        if (!Files.exists(filePath)) {
+            System.out.println("Rentals file not found.");
+            System.out.println("Path: " + filePath);
+            return false;
+        }
+
+        try {
+            List<String> lines = Files.readAllLines(filePath);
+            List<String> updatedLines = new ArrayList<>();
+            boolean closed = false;
+
+            for (String line : lines) {
+                Rental rental = createRental(line);
+
+                if (!closed &&
+                        rental != null &&
+                        rental.getVehicleId().equals(vehicleId) &&
+                        rental.getStatus().equalsIgnoreCase("Active")) {
+
+                    String updatedRecord =
+                            rental.getVehicleId() + "," +
+                                    rental.getCustomerName() + "," +
+                                    rental.getCustomerEmail() + "," +
+                                    rental.getRentalDays() + "," +
+                                    rental.getExpiryDate() + "," +
+                                    "Closed";
+
+                    updatedLines.add(updatedRecord);
+                    closed = true;
+
+                } else {
+                    updatedLines.add(line);
+                }
+            }
+
+            if (!closed) {
+                System.out.println(
+                        "No active rental found for vehicle " + vehicleId
+                );
+                return false;
+            }
+
+            Files.write(
+                    filePath,
+                    updatedLines,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.CREATE
+            );
+
+            return true;
+
+        } catch (IOException e) {
+            System.out.println("Error closing rental.");
+            System.out.println("Path: " + filePath);
+            return false;
+        }
     }
 
     private Rental createRental(String line) {
         String[] parts = line.split(",");
 
         if (parts.length != 6) {
+            System.out.println("Invalid rental record: " + line);
             return null;
         }
 
@@ -91,6 +167,7 @@ public class RentalRepository {
             );
 
         } catch (NumberFormatException | DateTimeParseException e) {
+            System.out.println("Invalid rental record: " + line);
             return null;
         }
     }

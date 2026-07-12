@@ -1,6 +1,6 @@
-1,Fadi,5,Active
-4,Mohammed,14,Active
-3,Baraa,3,Active
-1,Mohammed,5,Active
-4,fadi,22,Active
-4,ahmed,30,Active
+3,Baraa,baraa@example.com,3,2026-07-15,Closed
+4,Mohammed,mohammed@example.com,14,2026-07-26,Closed
+7,Ali,ali@example.com,5,2026-07-17,Active
+11,Sara,sara@example.com,10,2026-07-22,Closed
+10,ali,ali@example.com,6,2026-07-18,Closed
+10,alaa,alaa@example.com,3,2026-07-15,Closed
