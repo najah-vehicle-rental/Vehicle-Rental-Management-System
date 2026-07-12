@@ -5,13 +5,15 @@ import najah.eng.Application.Domain.Vehicle;
 import najah.eng.Application.Persistence.RentalRepository;
 import najah.eng.Application.Persistence.VehicleRepository;
 
+import java.time.LocalDate;
+
 public class RentalService {
 
     private static final int MIN_RENTAL_DAYS = 1;
     private static final int MAX_RENTAL_DAYS = 30;
 
-    private VehicleRepository vehicleRepository;
-    private RentalRepository rentalRepository;
+    private final VehicleRepository vehicleRepository;
+    private final RentalRepository rentalRepository;
 
     public RentalService() {
         vehicleRepository = new VehicleRepository();
@@ -21,6 +23,7 @@ public class RentalService {
     public boolean rentVehicle(
             String vehicleId,
             String customerName,
+            String customerEmail,
             int rentalDays) {
 
         Vehicle vehicle = vehicleRepository.findById(vehicleId);
@@ -37,23 +40,37 @@ public class RentalService {
             return false;
         }
 
+        if (customerEmail == null || customerEmail.isBlank()) {
+            return false;
+        }
+
+        LocalDate expiryDate =
+                LocalDate.now().plusDays(rentalDays);
+
         Rental rental = new Rental(
                 vehicleId,
                 customerName,
+                customerEmail,
                 rentalDays,
+                expiryDate,
                 "Active"
         );
+
+        boolean statusUpdated =
+                vehicleRepository.updateStatus(vehicleId, "Rented");
+
+        if (!statusUpdated) {
+            return false;
+        }
 
         boolean saved = rentalRepository.save(rental);
 
         if (!saved) {
+            vehicleRepository.updateStatus(vehicleId, "Available");
             return false;
         }
 
-        return vehicleRepository.updateStatus(
-                vehicleId,
-                "Rented"
-        );
+        return true;
     }
 
     public boolean isVehicleAvailable(String vehicleId) {

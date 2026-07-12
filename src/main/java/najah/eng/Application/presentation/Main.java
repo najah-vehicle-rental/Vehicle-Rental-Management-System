@@ -1,7 +1,11 @@
 package najah.eng.Application.presentation;
 
 import najah.eng.Application.Domain.Vehicle;
+import najah.eng.Application.Persistence.RentalRepository;
 import najah.eng.Application.service.AuthService;
+import najah.eng.Application.service.EmailNotificationService;
+import najah.eng.Application.service.NotificationService;
+import najah.eng.Application.service.ReminderService;
 import najah.eng.Application.service.RentalService;
 import najah.eng.Application.service.VehicleService;
 
@@ -16,6 +20,18 @@ public class Main {
         AuthService authService = new AuthService();
         VehicleService vehicleService = new VehicleService();
         RentalService rentalService = new RentalService();
+
+        RentalRepository rentalRepository =
+                new RentalRepository();
+
+        NotificationService notificationService =
+                new EmailNotificationService();
+
+        ReminderService reminderService =
+                new ReminderService(
+                        rentalRepository,
+                        notificationService
+                );
 
         while (true) {
             if (!authService.isLoggedIn()) {
@@ -35,8 +51,9 @@ public class Main {
 
             System.out.println("1. View Available Vehicles");
             System.out.println("2. Rent a Vehicle");
-            System.out.println("3. Logout");
-            System.out.println("4. Exit");
+            System.out.println("3. Generate Expiry Reminders");
+            System.out.println("4. Logout");
+            System.out.println("5. Exit");
             System.out.print("Choose: ");
 
             String choice = scanner.nextLine();
@@ -48,10 +65,13 @@ public class Main {
                 rentVehicle(scanner, rentalService);
 
             } else if (choice.equals("3")) {
+                generateReminders(reminderService);
+
+            } else if (choice.equals("4")) {
                 authService.logout();
                 System.out.println("Logged out.");
 
-            } else if (choice.equals("4")) {
+            } else if (choice.equals("5")) {
                 break;
 
             } else {
@@ -97,6 +117,14 @@ public class Main {
         System.out.print("Customer Name: ");
         String customerName = scanner.nextLine();
 
+        System.out.print("Customer Email: ");
+        String customerEmail = scanner.nextLine();
+
+        if (customerEmail.isBlank()) {
+            System.out.println("Customer email is required.");
+            return;
+        }
+
         System.out.print("Rental Days: ");
         String daysText = scanner.nextLine();
 
@@ -113,6 +141,7 @@ public class Main {
             boolean rented = rentalService.rentVehicle(
                     vehicleId,
                     customerName,
+                    customerEmail,
                     rentalDays
             );
 
@@ -124,6 +153,22 @@ public class Main {
 
         } catch (NumberFormatException e) {
             System.out.println("Rental days must be a number.");
+        }
+    }
+
+    private static void generateReminders(
+            ReminderService reminderService) {
+
+        int reminderCount =
+                reminderService.generateExpiryReminders();
+
+        if (reminderCount == 0) {
+            System.out.println("No expiry reminders generated.");
+        } else {
+            System.out.println(
+                    reminderCount +
+                            " expiry reminder generated."
+            );
         }
     }
 }
