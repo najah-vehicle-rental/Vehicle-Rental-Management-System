@@ -16,11 +16,16 @@ public class ReturnService {
     }
 
     public Rental getActiveRental(String vehicleId) {
-        return rentalRepository.findActiveRentalByVehicleId(vehicleId);
+        return rentalRepository.findActiveRentalByVehicleId(
+                vehicleId.trim()
+        );
     }
 
     public boolean returnVehicle(String vehicleId) {
-        Vehicle vehicle = vehicleRepository.findById(vehicleId);
+        String id = vehicleId.trim();
+
+        Vehicle vehicle =
+                vehicleRepository.findById(id);
 
         if (vehicle == null) {
             return false;
@@ -31,7 +36,7 @@ public class ReturnService {
         }
 
         Rental rental =
-                rentalRepository.findActiveRentalByVehicleId(vehicleId);
+                rentalRepository.findActiveRentalByVehicleId(id);
 
         if (rental == null) {
             return false;
@@ -39,7 +44,7 @@ public class ReturnService {
 
         boolean vehicleUpdated =
                 vehicleRepository.updateStatus(
-                        vehicleId,
+                        id,
                         "Available"
                 );
 
@@ -48,11 +53,11 @@ public class ReturnService {
         }
 
         boolean rentalClosed =
-                rentalRepository.closeActiveRental(vehicleId);
+                rentalRepository.closeActiveRental(id);
 
         if (!rentalClosed) {
             vehicleRepository.updateStatus(
-                    vehicleId,
+                    id,
                     "Rented"
             );
 
