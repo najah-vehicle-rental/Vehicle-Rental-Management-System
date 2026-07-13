@@ -1,10 +1,10 @@
 package najah.eng.Application.Domain;
 
-public class Vehicle {
+public abstract class Vehicle {
 
-    private String id;
-    private String name;
-    private String status;
+    private final String id;
+    private final String name;
+    private final String status;
 
     public Vehicle(String id, String name, String status) {
         this.id = id;
@@ -23,4 +23,6 @@ public class Vehicle {
     public String getStatus() {
         return status;
     }
+
+    public abstract String getType();
 }

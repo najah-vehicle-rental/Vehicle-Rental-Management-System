@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class VehicleService {
 
-    private VehicleRepository vehicleRepository;
+    private final VehicleRepository vehicleRepository;
 
     public VehicleService() {
         vehicleRepository = new VehicleRepository();
@@ -15,5 +15,9 @@ public class VehicleService {
 
     public ArrayList<Vehicle> getAvailableVehicles() {
         return vehicleRepository.findAvailableVehicles();
+    }
+
+    public Vehicle getVehicleById(String vehicleId) {
+        return vehicleRepository.findById(vehicleId);
     }
 }
