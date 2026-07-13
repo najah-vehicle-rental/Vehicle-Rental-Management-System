@@ -12,6 +12,7 @@ import najah.eng.Application.service.RentalService;
 import najah.eng.Application.service.ReturnService;
 import najah.eng.Application.service.VehicleService;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
@@ -194,9 +195,30 @@ public class Main {
             return;
         }
 
-        double totalCost =
+        LocalDate returnDate = LocalDate.now();
+
+        double rentalCost =
                 billingService.calculateRentalCost(
                         rental.getRentalDays()
+                );
+
+        long lateDays =
+                billingService.calculateLateDays(
+                        rental.getExpiryDate(),
+                        returnDate
+                );
+
+        double latePenalty =
+                billingService.calculateLatePenalty(
+                        rental.getExpiryDate(),
+                        returnDate
+                );
+
+        double totalCost =
+                billingService.calculateTotalCost(
+                        rental.getRentalDays(),
+                        rental.getExpiryDate(),
+                        returnDate
                 );
 
         boolean returned =
@@ -204,6 +226,14 @@ public class Main {
 
         if (returned) {
             System.out.println("Vehicle returned successfully.");
+            System.out.println(
+                    "Expiry Date: " +
+                            rental.getExpiryDate()
+            );
+            System.out.println(
+                    "Return Date: " +
+                            returnDate
+            );
             System.out.println(
                     "Rental Days: " +
                             rental.getRentalDays()
@@ -213,6 +243,29 @@ public class Main {
                     Locale.US,
                     "Daily Rate: %.2f ILS%n",
                     billingService.getDailyRate()
+            );
+
+            System.out.printf(
+                    Locale.US,
+                    "Rental Cost: %.2f ILS%n",
+                    rentalCost
+            );
+
+            System.out.println(
+                    "Late Days: " +
+                            lateDays
+            );
+
+            System.out.printf(
+                    Locale.US,
+                    "Late Penalty Per Day: %.2f ILS%n",
+                    billingService.getLatePenaltyPerDay()
+            );
+
+            System.out.printf(
+                    Locale.US,
+                    "Late Return Penalty: %.2f ILS%n",
+                    latePenalty
             );
 
             System.out.printf(

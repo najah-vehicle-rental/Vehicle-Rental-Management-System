@@ -4,10 +4,10 @@
 4,BMW X5,Available
 5,Hyundai Elantra,Available
 6,Nissan Altima,Available
-7,Ford Focus,Rented
+7,Ford Focus,Available
 8,Chevrolet Malibu,Unavailable
 9,Mazda CX-5,Available
-10,Tesla Model 3,Available
+10,Tesla Model 3,Rented
 11,Mercedes C200,Available
 12,Audi A4,Unavailable
 13,Volkswagen Golf,Available
