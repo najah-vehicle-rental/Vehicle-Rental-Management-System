@@ -1,5 +1,10 @@
 package najah.eng.Application.Persistence;
 
+import najah.eng.Application.Domain.Car;
+import najah.eng.Application.Domain.ElectricVehicle;
+import najah.eng.Application.Domain.Motorcycle;
+import najah.eng.Application.Domain.Truck;
+import najah.eng.Application.Domain.Van;
 import najah.eng.Application.Domain.Vehicle;
 
 import java.io.IOException;
@@ -42,7 +47,6 @@ public class VehicleRepository {
 
         } catch (IOException e) {
             System.out.println("Error reading vehicles file.");
-            System.out.println("Path: " + filePath);
         }
 
         return vehicles;
@@ -51,7 +55,6 @@ public class VehicleRepository {
     public Vehicle findById(String vehicleId) {
         if (!Files.exists(filePath)) {
             System.out.println("Vehicles file not found.");
-            System.out.println("Path: " + filePath);
             return null;
         }
 
@@ -69,7 +72,6 @@ public class VehicleRepository {
 
         } catch (IOException e) {
             System.out.println("Error reading vehicles file.");
-            System.out.println("Path: " + filePath);
         }
 
         return null;
@@ -78,7 +80,6 @@ public class VehicleRepository {
     public boolean updateStatus(String vehicleId, String newStatus) {
         if (!Files.exists(filePath)) {
             System.out.println("Vehicles file not found.");
-            System.out.println("Path: " + filePath);
             return false;
         }
 
@@ -93,20 +94,21 @@ public class VehicleRepository {
                 if (vehicle != null &&
                         vehicle.getId().equals(vehicleId.trim())) {
 
-                    updatedLines.add(
+                    String updatedLine =
                             vehicle.getId() + "," +
                                     vehicle.getName() + "," +
-                                    newStatus
-                    );
+                                    vehicle.getType() + "," +
+                                    newStatus;
 
+                    updatedLines.add(updatedLine);
                     found = true;
+
                 } else {
                     updatedLines.add(line);
                 }
             }
 
             if (!found) {
-                System.out.println("Vehicle not found: " + vehicleId);
                 return false;
             }
 
@@ -121,7 +123,6 @@ public class VehicleRepository {
 
         } catch (IOException e) {
             System.out.println("Error updating vehicle status.");
-            System.out.println("Path: " + filePath);
             return false;
         }
     }
@@ -129,15 +130,35 @@ public class VehicleRepository {
     private Vehicle createVehicle(String line) {
         String[] parts = line.split(",");
 
-        if (parts.length != 3) {
-            System.out.println("Invalid vehicle record: " + line);
+        if (parts.length != 4) {
             return null;
         }
 
-        return new Vehicle(
-                parts[0].trim(),
-                parts[1].trim(),
-                parts[2].trim()
-        );
+        String id = parts[0].trim();
+        String name = parts[1].trim();
+        String type = parts[2].trim();
+        String status = parts[3].trim();
+
+        if (type.equalsIgnoreCase("Car")) {
+            return new Car(id, name, status);
+        }
+
+        if (type.equalsIgnoreCase("Motorcycle")) {
+            return new Motorcycle(id, name, status);
+        }
+
+        if (type.equalsIgnoreCase("Van")) {
+            return new Van(id, name, status);
+        }
+
+        if (type.equalsIgnoreCase("Truck")) {
+            return new Truck(id, name, status);
+        }
+
+        if (type.equalsIgnoreCase("Electric Vehicle")) {
+            return new ElectricVehicle(id, name, status);
+        }
+
+        return null;
     }
 }

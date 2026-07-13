@@ -66,7 +66,7 @@ public class Main {
                 showAvailableVehicles(vehicleService);
 
             } else if (choice.equals("2")) {
-                rentVehicle(scanner, rentalService);
+                rentVehicle(scanner, rentalService, vehicleService);
 
             } else if (choice.equals("3")) {
                 returnVehicle(
@@ -119,21 +119,34 @@ public class Main {
         for (Vehicle vehicle : vehicles) {
             System.out.println("ID: " + vehicle.getId());
             System.out.println("Name: " + vehicle.getName());
+            System.out.println("Type: " + vehicle.getType());
+            System.out.println("Status: " + vehicle.getStatus());
             System.out.println();
         }
     }
 
     private static void rentVehicle(
             Scanner scanner,
-            RentalService rentalService) {
+            RentalService rentalService,
+            VehicleService vehicleService) {
 
         System.out.print("Vehicle ID: ");
         String vehicleId = scanner.nextLine();
+
+        Vehicle vehicle =
+                vehicleService.getVehicleById(vehicleId);
+
+        if (vehicle == null) {
+            System.out.println("Vehicle was not found.");
+            return;
+        }
 
         if (!rentalService.isVehicleAvailable(vehicleId)) {
             System.out.println("Vehicle is not available.");
             return;
         }
+
+        System.out.println("Vehicle Type: " + vehicle.getType());
 
         System.out.print("Customer Name: ");
         String customerName = scanner.nextLine();
@@ -226,18 +239,9 @@ public class Main {
 
         if (returned) {
             System.out.println("Vehicle returned successfully.");
-            System.out.println(
-                    "Expiry Date: " +
-                            rental.getExpiryDate()
-            );
-            System.out.println(
-                    "Return Date: " +
-                            returnDate
-            );
-            System.out.println(
-                    "Rental Days: " +
-                            rental.getRentalDays()
-            );
+            System.out.println("Expiry Date: " + rental.getExpiryDate());
+            System.out.println("Return Date: " + returnDate);
+            System.out.println("Rental Days: " + rental.getRentalDays());
 
             System.out.printf(
                     Locale.US,
@@ -251,10 +255,7 @@ public class Main {
                     rentalCost
             );
 
-            System.out.println(
-                    "Late Days: " +
-                            lateDays
-            );
+            System.out.println("Late Days: " + lateDays);
 
             System.out.printf(
                     Locale.US,

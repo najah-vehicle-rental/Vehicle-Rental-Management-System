@@ -1,14 +1,14 @@
-1,Toyota Corolla,Available
-2,Honda Civic,Unavailable
-3,Kia Sportage,Available
-4,BMW X5,Available
-5,Hyundai Elantra,Available
-6,Nissan Altima,Available
-7,Ford Focus,Available
-8,Chevrolet Malibu,Unavailable
-9,Mazda CX-5,Available
-10,Tesla Model 3,Rented
-11,Mercedes C200,Available
-12,Audi A4,Unavailable
-13,Volkswagen Golf,Available
-14,Jeep Wrangler,Available
+1,Toyota Corolla,Car,Available
+2,Honda Civic,Car,Unavailable
+3,Kia Sportage,Car,Available
+4,BMW X5,Car,Available
+5,Hyundai Elantra,Car,Available
+6,Yamaha MT-07,Motorcycle,Rented
+7,Honda CBR500R,Motorcycle,Rented
+8,Ford Transit,Van,Unavailable
+9,Mercedes Sprinter,Van,Available
+10,Volvo FH16,Truck,Rented
+11,Mercedes Actros,Truck,Rented
+12,Tesla Model 3,Electric Vehicle,Available
+13,Nissan Leaf,Electric Vehicle,Available
+14,Tesla Model Y,Electric Vehicle,Available
