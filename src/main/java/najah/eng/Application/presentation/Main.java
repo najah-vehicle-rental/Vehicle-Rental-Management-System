@@ -66,7 +66,11 @@ public class Main {
                 showAvailableVehicles(vehicleService);
 
             } else if (choice.equals("2")) {
-                rentVehicle(scanner, rentalService, vehicleService);
+                rentVehicle(
+                        scanner,
+                        rentalService,
+                        vehicleService
+                );
 
             } else if (choice.equals("3")) {
                 returnVehicle(
@@ -121,6 +125,10 @@ public class Main {
             System.out.println("Name: " + vehicle.getName());
             System.out.println("Type: " + vehicle.getType());
             System.out.println("Status: " + vehicle.getStatus());
+            System.out.println(
+                    "Rental Rule: " +
+                            vehicle.getRuleDescription()
+            );
             System.out.println();
         }
     }
@@ -146,10 +154,23 @@ public class Main {
             return;
         }
 
-        System.out.println("Vehicle Type: " + vehicle.getType());
+        System.out.println(
+                "Vehicle Type: " +
+                        vehicle.getType()
+        );
+
+        System.out.println(
+                "Rental Rule: " +
+                        vehicle.getRuleDescription()
+        );
 
         System.out.print("Customer Name: ");
         String customerName = scanner.nextLine();
+
+        if (customerName.isBlank()) {
+            System.out.println("Customer name is required.");
+            return;
+        }
 
         System.out.print("Customer Email: ");
         String customerEmail = scanner.nextLine();
@@ -163,7 +184,8 @@ public class Main {
         String daysText = scanner.nextLine();
 
         try {
-            int rentalDays = Integer.parseInt(daysText);
+            int rentalDays =
+                    Integer.parseInt(daysText);
 
             if (!rentalService.isRentalDurationValid(rentalDays)) {
                 System.out.println(
@@ -172,21 +194,86 @@ public class Main {
                 return;
             }
 
-            boolean rented = rentalService.rentVehicle(
-                    vehicleId,
-                    customerName,
-                    customerEmail,
-                    rentalDays
-            );
+            int customerAge = 0;
+            boolean hasSpecialLicense = false;
+            int batteryLevel = 0;
+
+            if (vehicle.getType().equalsIgnoreCase("Truck")) {
+                System.out.print(
+                        "Does the customer have a special truck license? (yes/no): "
+                );
+
+                String licenseAnswer =
+                        scanner.nextLine().trim();
+
+                hasSpecialLicense =
+                        licenseAnswer.equalsIgnoreCase("yes")
+                                || licenseAnswer.equalsIgnoreCase("y");
+            }
+
+            if (vehicle.getType()
+                    .equalsIgnoreCase("Electric Vehicle")) {
+
+                System.out.print(
+                        "Battery Level (0-100): "
+                );
+
+                batteryLevel =
+                        Integer.parseInt(
+                                scanner.nextLine()
+                        );
+            }
+
+            if (vehicle.getType()
+                    .equalsIgnoreCase("Motorcycle")) {
+
+                System.out.print("Customer Age: ");
+
+                customerAge =
+                        Integer.parseInt(
+                                scanner.nextLine()
+                        );
+            }
+
+            boolean ruleValid =
+                    rentalService.isTypeSpecificRuleValid(
+                            vehicleId,
+                            customerAge,
+                            hasSpecialLicense,
+                            batteryLevel
+                    );
+
+            if (!ruleValid) {
+                System.out.println(
+                        "Rental rejected: " +
+                                vehicle.getRuleDescription()
+                );
+                return;
+            }
+
+            boolean rented =
+                    rentalService.rentVehicle(
+                            vehicleId,
+                            customerName,
+                            customerEmail,
+                            rentalDays,
+                            customerAge,
+                            hasSpecialLicense,
+                            batteryLevel
+                    );
 
             if (rented) {
-                System.out.println("Vehicle rented successfully.");
+                System.out.println(
+                        "Vehicle rented successfully."
+                );
             } else {
                 System.out.println("Rental failed.");
             }
 
         } catch (NumberFormatException e) {
-            System.out.println("Rental days must be a number.");
+            System.out.println(
+                    "Rental days, customer age, and battery level must be valid numbers."
+            );
         }
     }
 
@@ -238,10 +325,24 @@ public class Main {
                 returnService.returnVehicle(vehicleId);
 
         if (returned) {
-            System.out.println("Vehicle returned successfully.");
-            System.out.println("Expiry Date: " + rental.getExpiryDate());
-            System.out.println("Return Date: " + returnDate);
-            System.out.println("Rental Days: " + rental.getRentalDays());
+            System.out.println(
+                    "Vehicle returned successfully."
+            );
+
+            System.out.println(
+                    "Expiry Date: " +
+                            rental.getExpiryDate()
+            );
+
+            System.out.println(
+                    "Return Date: " +
+                            returnDate
+            );
+
+            System.out.println(
+                    "Rental Days: " +
+                            rental.getRentalDays()
+            );
 
             System.out.printf(
                     Locale.US,
@@ -255,7 +356,10 @@ public class Main {
                     rentalCost
             );
 
-            System.out.println("Late Days: " + lateDays);
+            System.out.println(
+                    "Late Days: " +
+                            lateDays
+            );
 
             System.out.printf(
                     Locale.US,
@@ -289,7 +393,9 @@ public class Main {
                 reminderService.generateExpiryReminders();
 
         if (reminderCount == 0) {
-            System.out.println("No expiry reminders generated.");
+            System.out.println(
+                    "No expiry reminders generated."
+            );
         } else {
             System.out.println(
                     reminderCount +
