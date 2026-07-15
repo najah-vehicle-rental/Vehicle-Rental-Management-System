@@ -26,7 +26,34 @@ public class RentalService {
             String customerEmail,
             int rentalDays) {
 
-        Vehicle vehicle = vehicleRepository.findById(vehicleId);
+        return rentVehicle(
+                vehicleId,
+                customerName,
+                customerEmail,
+                rentalDays,
+                0,
+                false,
+                0
+        );
+    }
+
+    public boolean rentVehicle(
+            String vehicleId,
+            String customerName,
+            String customerEmail,
+            int rentalDays,
+            int customerAge,
+            boolean hasSpecialLicense,
+            int batteryLevel) {
+
+        if (vehicleId == null || vehicleId.isBlank()) {
+            return false;
+        }
+
+        String id = vehicleId.trim();
+
+        Vehicle vehicle =
+                vehicleRepository.findById(id);
 
         if (vehicle == null) {
             return false;
@@ -40,7 +67,19 @@ public class RentalService {
             return false;
         }
 
+        if (customerName == null || customerName.isBlank()) {
+            return false;
+        }
+
         if (customerEmail == null || customerEmail.isBlank()) {
+            return false;
+        }
+
+        if (!vehicle.isRentalAllowed(
+                customerAge,
+                hasSpecialLicense,
+                batteryLevel
+        )) {
             return false;
         }
 
@@ -48,25 +87,33 @@ public class RentalService {
                 LocalDate.now().plusDays(rentalDays);
 
         Rental rental = new Rental(
-                vehicleId,
-                customerName,
-                customerEmail,
+                id,
+                customerName.trim(),
+                customerEmail.trim(),
                 rentalDays,
                 expiryDate,
                 "Active"
         );
 
         boolean statusUpdated =
-                vehicleRepository.updateStatus(vehicleId, "Rented");
+                vehicleRepository.updateStatus(
+                        id,
+                        "Rented"
+                );
 
         if (!statusUpdated) {
             return false;
         }
 
-        boolean saved = rentalRepository.save(rental);
+        boolean saved =
+                rentalRepository.save(rental);
 
         if (!saved) {
-            vehicleRepository.updateStatus(vehicleId, "Available");
+            vehicleRepository.updateStatus(
+                    id,
+                    "Available"
+            );
+
             return false;
         }
 
@@ -74,17 +121,47 @@ public class RentalService {
     }
 
     public boolean isVehicleAvailable(String vehicleId) {
-        Vehicle vehicle = vehicleRepository.findById(vehicleId);
+        if (vehicleId == null || vehicleId.isBlank()) {
+            return false;
+        }
+
+        Vehicle vehicle =
+                vehicleRepository.findById(vehicleId.trim());
 
         if (vehicle == null) {
             return false;
         }
 
-        return vehicle.getStatus().equalsIgnoreCase("Available");
+        return vehicle.getStatus()
+                .equalsIgnoreCase("Available");
     }
 
     public boolean isRentalDurationValid(int rentalDays) {
         return rentalDays >= MIN_RENTAL_DAYS
                 && rentalDays <= MAX_RENTAL_DAYS;
+    }
+
+    public boolean isTypeSpecificRuleValid(
+            String vehicleId,
+            int customerAge,
+            boolean hasSpecialLicense,
+            int batteryLevel) {
+
+        if (vehicleId == null || vehicleId.isBlank()) {
+            return false;
+        }
+
+        Vehicle vehicle =
+                vehicleRepository.findById(vehicleId.trim());
+
+        if (vehicle == null) {
+            return false;
+        }
+
+        return vehicle.isRentalAllowed(
+                customerAge,
+                hasSpecialLicense,
+                batteryLevel
+        );
     }
 }

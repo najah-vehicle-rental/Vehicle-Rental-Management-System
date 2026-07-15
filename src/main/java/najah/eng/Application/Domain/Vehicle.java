@@ -25,4 +25,12 @@ public abstract class Vehicle {
     }
 
     public abstract String getType();
+
+    public abstract boolean isRentalAllowed(
+            int customerAge,
+            boolean hasSpecialLicense,
+            int batteryLevel
+    );
+
+    public abstract String getRuleDescription();
 }
