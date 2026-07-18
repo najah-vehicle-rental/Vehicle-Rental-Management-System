@@ -1,15 +1,24 @@
 package najah.eng.Application.Domain;
 
+import najah.eng.Application.strategy.RentalRuleStrategy;
+
 public abstract class Vehicle {
 
     private final String id;
     private final String name;
     private final String status;
+    private final RentalRuleStrategy rentalRuleStrategy;
 
-    public Vehicle(String id, String name, String status) {
+    protected Vehicle(
+            String id,
+            String name,
+            String status,
+            RentalRuleStrategy rentalRuleStrategy) {
+
         this.id = id;
         this.name = name;
         this.status = status;
+        this.rentalRuleStrategy = rentalRuleStrategy;
     }
 
     public String getId() {
@@ -26,11 +35,24 @@ public abstract class Vehicle {
 
     public abstract String getType();
 
-    public abstract boolean isRentalAllowed(
+    public boolean isRentalAllowed(
             int customerAge,
             boolean hasSpecialLicense,
-            int batteryLevel
-    );
+            int batteryLevel) {
 
-    public abstract String getRuleDescription();
+        RentalRequirements requirements =
+                new RentalRequirements(
+                        customerAge,
+                        hasSpecialLicense,
+                        batteryLevel
+                );
+
+        return rentalRuleStrategy.isRentalAllowed(
+                requirements
+        );
+    }
+
+    public String getRuleDescription() {
+        return rentalRuleStrategy.getRuleDescription();
+    }
 }
