@@ -2,107 +2,173 @@
 
 A Java console application for managing vehicle rentals.
 
-The system allows managers to log in, view available vehicles, rent vehicles, prevent double booking, validate vehicle-specific rental rules, return vehicles, calculate rental costs, apply late return penalties, and generate rental expiry reminders.
+The system allows managers to authenticate, view available vehicles, rent and return vehicles, prevent double booking, enforce rental policies, calculate rental costs and late penalties, and generate rental-expiry reminders.
+
+## Features
+
+* Manager login and logout
+* Protection of manager-only operations
+* Display of available vehicles
+* Vehicle rental creation
+* Double-booking prevention
+* Rental-duration validation
+* Customer-information validation
+* Vehicle-specific rental rules
+* Vehicle returns
+* Rental-record closure
+* Rental-cost calculation
+* Late-return penalty calculation
+* Rental-expiry reminders
+* Observer notifications for rental events
+* Text-file data persistence
 
 ## Technologies
 
-- Java
-- Maven
-- JUnit 5
-- Mockito
-- Text-file persistence
-- Git and GitHub
-- IntelliJ IDEA
+* Java 8+
+* Maven
+* JUnit 5
+* Mockito
+* JaCoCo
+* Git and GitHub
+* PlantUML
+* IntelliJ IDEA
+* Text-file persistence
+
+The project requirements also include GitHub Actions CI/CD and SonarQube. These integrations must be configured before the final submission.
 
 ## Project Architecture
 
-The project follows a layered architecture:
+The application follows a layered architecture.
 
-- `Domain`: business entities
-- `Persistence`: text-file repositories
-- `service`: business logic
-- `strategy`: vehicle rental validation strategies
-- `observer`: rental event observers
-- `factory`: vehicle creation
-- `presentation`: console user interface
+* `Domain`: business entities and vehicle subclasses
+* `Persistence`: repositories and text-file data access
+* `service`: application and business logic
+* `strategy`: vehicle-specific rental-validation strategies
+* `observer`: rental-event publishers and observers
+* `factory`: creation of the correct vehicle subclass
+* `presentation`: console-based user interface
 
 ## Project Structure
 
 ```text
-src
-├── main
-│   ├── java
-│   │   └── najah.eng.Application
-│   │       ├── Domain
-│   │       ├── Persistence
-│   │       ├── factory
-│   │       ├── observer
-│   │       ├── presentation
-│   │       ├── service
-│   │       └── strategy
-│   └── resources
-│       ├── managers.txt
-│       ├── vehicles.txt
-│       └── rentals.txt
-└── test
-    └── java
-        └── najah.eng.Application
-            ├── Domain
-            ├── Persistence
-            ├── factory
-            ├── observer
-            ├── service
-            └── strategy
+Vehicle-Rental-Management-System
+├── docs
+│   ├── REQUIREMENTS_CHECKLIST.md
+│   └── VehicleRentalSystem.puml
+├── src
+│   ├── main
+│   │   ├── java
+│   │   │   └── najah
+│   │   │       └── eng
+│   │   │           └── Application
+│   │   │               ├── Domain
+│   │   │               ├── Persistence
+│   │   │               ├── factory
+│   │   │               ├── observer
+│   │   │               ├── presentation
+│   │   │               ├── service
+│   │   │               └── strategy
+│   │   └── resources
+│   │       ├── managers.txt
+│   │       ├── rentals.txt
+│   │       └── vehicles.txt
+│   └── test
+│       └── java
+│           └── najah
+│               └── eng
+│                   └── Application
+│                       ├── Domain
+│                       ├── Persistence
+│                       ├── factory
+│                       ├── observer
+│                       ├── service
+│                       └── strategy
+├── pom.xml
+└── README.md
 ```
 
 ## Functional Requirements
 
 ### Sprint 1: Authentication and Vehicle Catalog
 
-- Manager login
-- Invalid login rejection
-- Manager logout
-- Protected actions require login
-- View available vehicles
-- Hide rented and unavailable vehicles
+#### Manager Login
+
+* Accept valid manager credentials.
+* Reject invalid manager credentials.
+* Display an appropriate login result.
+
+#### Manager Logout
+
+* Allow the manager to log out.
+* Require authentication again before accessing protected operations.
+
+#### View Available Vehicles
+
+* Display vehicles with the status `Available`.
+* Hide vehicles with the status `Rented`.
+* Hide vehicles with the status `Unavailable`.
 
 ### Sprint 2: Rental Operations
 
-- Rent an available vehicle
-- Save the rental record
-- Change vehicle status to `Rented`
-- Prevent double booking
-- Reject a vehicle that already has an active rental
-- Enforce a rental duration between 1 and 30 days
-- Validate customer name and email
-- Restore the vehicle status if saving the rental fails
+#### Rent a Vehicle
 
-### Sprint 3: Notifications
+* Rent an available vehicle.
+* Create and save a rental record.
+* Change the vehicle status to `Rented`.
+* Validate the customer name and email.
+* Restore the original vehicle status if saving the rental fails.
 
-- Generate expiry reminders for active rentals
-- Send reminder notifications through a notification interface
-- Use a mocked notification service during unit testing
+#### Prevent Double Booking
+
+* Reject rental requests for vehicles that are not available.
+* Reject rental requests when an active rental already exists.
+* Prevent multiple active rentals for the same vehicle.
+
+#### Rental-Duration Limits
+
+* Minimum rental duration: 1 day
+* Maximum rental duration: 30 days
+* Reject rental periods outside the accepted range.
+
+### Sprint 3: Notifications and Mocking
+
+#### Rental Expiry Reminder
+
+* Find active rentals that require reminders.
+* Generate rental-expiry reminders.
+* Send reminders through a notification interface.
+* Mock the notification service during unit testing.
 
 ### Sprint 4: Returns and Billing
 
-- Return a rented vehicle
-- Change vehicle status to `Available`
-- Close the active rental
-- Restore vehicle status if closing the rental fails
-- Calculate rental cost
-- Calculate late-return days
-- Apply late-return penalties
-- Display the total rental cost
+#### Return Vehicle
 
-### Sprint 5: Vehicle Types
+* Return a vehicle with an active rental.
+* Change the vehicle status to `Available`.
+* Close the active rental record.
+* Restore the vehicle status to `Rented` if closing the rental fails.
+
+#### Calculate Rental Cost
+
+* Calculate the basic rental cost from the rental duration.
+* Display the calculated rental cost.
+
+#### Apply Late-Return Penalty
+
+* Calculate the number of late days.
+* Apply a penalty for every late day.
+* Add the late penalty to the basic rental cost.
+* Display the final total.
+
+### Sprint 5: Vehicle Types and Polymorphism
 
 The system supports the following vehicle types:
 
-- Car
-- Van
-- Truck
-- Motorcycle
-- Electric Vehicle
+* Car
+* Van
+* Truck
+* Motorcycle
+* Electric Vehicle
 
 Each vehicle type is implemented as a subclass of the abstract `Vehicle` class.
 
@@ -110,25 +176,42 @@ Each vehicle type is implemented as a subclass of the abstract `Vehicle` class.
 
 ### General Rental Rules
 
-- Minimum rental duration: 1 day
-- Maximum rental duration: 30 days
-- A vehicle must have the status `Available`
-- A vehicle must not have another active rental
-- Customer name is required
-- Customer email is required
+* The rental duration must be between 1 and 30 days.
+* The vehicle must exist.
+* The vehicle status must be `Available`.
+* The vehicle must not have another active rental.
+* The customer name must not be empty.
+* The customer email must not be empty.
+* The customer email must use a valid format.
 
 ### Type-Specific Rules
 
-- Cars have no additional requirements
-- Vans have no additional requirements
-- Trucks require a special truck license
-- Motorcycles require the customer to be at least 18 years old
-- Electric vehicles require a battery level between 30% and 100%
+#### Car
 
-### Billing Rules
+Cars have no additional rental requirements.
 
-- Daily rental rate: 50 ILS
-- Late-return penalty: 25 ILS per late day
+#### Van
+
+Vans have no additional rental requirements.
+
+#### Truck
+
+The customer must provide confirmation of a valid special truck licence.
+
+#### Motorcycle
+
+The customer must be at least 18 years old.
+
+#### Electric Vehicle
+
+The battery level must be between 30% and 100%.
+
+## Billing Rules
+
+The current billing implementation uses the following fixed values:
+
+* Daily rental rate: 50 ILS
+* Late-return penalty: 25 ILS per late day
 
 ```text
 Rental Cost = Rental Days × Daily Rate
@@ -140,9 +223,7 @@ Total Cost = Rental Cost + Late Penalty
 
 ## Design Patterns
 
-The project contains three design patterns.
-
-### 1. Strategy Pattern
+### Strategy Pattern
 
 The Strategy Pattern is used to apply different rental-validation rules to different vehicle types.
 
@@ -161,15 +242,17 @@ MotorcycleAgeStrategy
 ElectricBatteryStrategy
 ```
 
-Each `Vehicle` receives the correct strategy, and rental validation is delegated to that strategy.
+Each vehicle is assigned the appropriate rental-rule strategy. The rental service delegates type-specific validation to that strategy.
 
-This avoids placing all vehicle rules inside one large conditional method.
+This design avoids placing every vehicle rule inside one large conditional method.
 
-### 2. Observer Pattern
+The current Strategy implementation handles rental validation. Pricing is currently calculated directly by `BillingService`.
+
+### Observer Pattern
 
 The Observer Pattern is used to react to rental events.
 
-Subject:
+Publisher:
 
 ```text
 RentalEventPublisher
@@ -188,7 +271,7 @@ EmailRentalObserver
 AuditLogObserver
 ```
 
-Supported events:
+Supported rental events include:
 
 ```text
 RENTED
@@ -196,19 +279,19 @@ RETURNED
 LATE_RETURNED
 ```
 
-When a rental event occurs, all registered observers are notified.
+When a rental event occurs, the publisher notifies all registered observers.
 
-### 3. Factory Pattern
+### Factory Pattern
 
-The Factory Pattern is used to create the correct vehicle subclass from the type stored in `vehicles.txt`.
+The Factory Pattern is used to create the appropriate vehicle subclass from the vehicle type stored in `vehicles.txt`.
 
-Factory:
+Factory class:
 
 ```text
 VehicleFactory
 ```
 
-The factory can create:
+The factory supports the creation of:
 
 ```text
 Car
@@ -218,65 +301,19 @@ Motorcycle
 ElectricVehicle
 ```
 
-This keeps object-creation logic outside `VehicleRepository`.
+This keeps vehicle-object creation outside `VehicleRepository` and avoids placing creation logic throughout the application.
 
-## Unit Testing
+## Data Persistence
 
-The project uses JUnit 5.
-
-The test suite covers:
-
-- Authentication
-- Manager repository
-- Vehicle repository
-- Rental repository
-- Vehicle factory
-- Strategy rules
-- Vehicle type rules
-- Rental service
-- Double-booking prevention
-- Return service
-- Billing service
-- Reminder service
-- Observer registration and notification
-- Email observer behavior
-- Rollback scenarios
-- Missing and invalid file records
-
-Current test result:
+The application stores data in text files under:
 
 ```text
-Tests run: 63
-Failures: 0
-Errors: 0
-Skipped: 0
-BUILD SUCCESS
+src/main/resources
 ```
 
-## Mocking
-
-Mockito is used to isolate classes during unit testing.
-
-Mocked components include:
-
-- `ManagerRepository`
-- `VehicleRepository`
-- `RentalRepository`
-- `NotificationService`
-- `RentalEventPublisher`
-- `RentalObserver`
-
-Mockito verifies:
-
-- Repository interactions
-- Notification sending
-- Observer notifications
-- Prevented operations
-- Rollback behavior
-
-## Text File Formats
-
 ### managers.txt
+
+Format:
 
 ```text
 username,password
@@ -290,6 +327,8 @@ admin,1234
 
 ### vehicles.txt
 
+Format:
+
 ```text
 vehicleId,vehicleName,vehicleType,status
 ```
@@ -301,7 +340,17 @@ Example:
 12,Tesla Model 3,Electric Vehicle,Available
 ```
 
-Supported statuses:
+Supported vehicle types:
+
+```text
+Car
+Van
+Truck
+Motorcycle
+Electric Vehicle
+```
+
+Supported vehicle statuses:
 
 ```text
 Available
@@ -310,6 +359,8 @@ Unavailable
 ```
 
 ### rentals.txt
+
+Format:
 
 ```text
 vehicleId,customerName,customerEmail,rentalDays,expiryDate,status
@@ -330,30 +381,38 @@ Closed
 
 ## Running the Application
 
-### IntelliJ IDEA
+### Using IntelliJ IDEA
 
-1. Open the inner `Vehicle-Rental-Management-System` folder.
-2. Reload the Maven project.
+1. Open the `Vehicle-Rental-Management-System` project folder.
+2. Allow IntelliJ IDEA to load the Maven project.
 3. Open:
 
 ```text
 src/main/java/najah/eng/Application/presentation/Main.java
 ```
 
-4. Run `Main.main()`.
+4. Run the `main` method.
 
-### Maven Tests
+### Using Maven
 
-From IntelliJ:
+Make sure Java and Maven are installed.
 
-```text
-Maven → Lifecycle → test
+Compile the project:
+
+```bash
+mvn clean compile
 ```
 
-Or with Maven installed:
+Run the tests:
 
 ```bash
 mvn clean test
+```
+
+Run tests and generate the JaCoCo report:
+
+```bash
+mvn clean verify
 ```
 
 ## Console Menu
@@ -367,41 +426,253 @@ mvn clean test
 6. Exit
 ```
 
-## Manual Acceptance Test
+## Unit Testing
 
-1. Log in using valid manager credentials.
-2. Verify that invalid credentials are rejected.
-3. View available vehicles.
-4. Rent an available car.
-5. Verify that its status changes to `Rented`.
-6. Try to rent it again and verify rejection.
-7. Rent a truck without a special license and verify rejection.
-8. Rent a truck with a special license and verify acceptance.
-9. Rent a motorcycle using an age below 18 and verify rejection.
-10. Rent an electric vehicle using a battery level below 30 and verify rejection.
-11. Return an active rented vehicle.
-12. Verify that its status changes to `Available`.
-13. Verify that the rental becomes `Closed`.
-14. Verify the rental cost and late penalty.
-15. Generate expiry reminders.
-16. Run all Maven tests and verify `BUILD SUCCESS`.
+The project uses JUnit 5.
 
-## UML Diagram
+The test suite covers areas including:
 
-The complete UML class diagram is stored in:
+* Manager authentication
+* Manager logout
+* Protected operations
+* Manager repository
+* Vehicle repository
+* Rental repository
+* Vehicle factory
+* Vehicle subclasses
+* General rental rules
+* Truck licence validation
+* Motorcycle age validation
+* Electric-vehicle battery validation
+* Rental service
+* Double-booking prevention
+* Rental-duration validation
+* Return service
+* Billing service
+* Reminder service
+* Observer registration
+* Observer removal
+* Observer notification
+* Email observer behavior
+* Repository failures
+* Rollback behavior
+* Missing files
+* Invalid file records
+
+Run the complete test suite before submission:
+
+```bash
+mvn clean verify
+```
+
+The final README must only include an exact test result after it has been confirmed from the latest Maven execution.
+
+Example format:
+
+```text
+Tests run: <actual number>
+Failures: 0
+Errors: 0
+Skipped: 0
+BUILD SUCCESS
+```
+
+## Mocking
+
+Mockito is used to isolate dependencies during unit testing.
+
+Mocked components include:
+
+* `ManagerRepository`
+* `VehicleRepository`
+* `RentalRepository`
+* `NotificationService`
+* `RentalEventPublisher`
+* `RentalObserver`
+
+Mockito is used to verify:
+
+* Repository interactions
+* Notification delivery
+* Observer notifications
+* Rejected operations
+* Unwanted interactions
+* Rollback behavior
+
+## Code Coverage
+
+JaCoCo is configured through Maven to measure test coverage.
+
+Generate the coverage report with:
+
+```bash
+mvn clean verify
+```
+
+Open the generated report from:
+
+```text
+target/site/jacoco/index.html
+```
+
+The final coverage percentage should be recorded only after successfully running the latest version of the complete test suite.
+
+## Javadocs
+
+The project requirements state that all classes, constructors, methods, and fields must have Javadoc documentation.
+
+Generate the Javadoc documentation with:
+
+```bash
+mvn javadoc:javadoc
+```
+
+The generated documentation is normally available under:
+
+```text
+target/site/apidocs
+```
+
+All source files should be reviewed to ensure that the Javadoc requirement is fully satisfied before submission.
+
+## UML Class Diagram
+
+The PlantUML source for the class diagram is stored in:
 
 ```text
 docs/VehicleRentalSystem.puml
 ```
 
-## Project Requirements Status
+A rendered version should also be exported before submission, for example:
 
-The complete requirements checklist is stored in:
+```text
+docs/VehicleRentalSystem.png
+```
+
+or:
+
+```text
+docs/VehicleRentalSystem.pdf
+```
+
+## Manual Acceptance Test
+
+1. Start the application.
+2. Log in using valid manager credentials.
+3. Verify that invalid credentials are rejected.
+4. View the available vehicles.
+5. Confirm that unavailable and rented vehicles are hidden.
+6. Rent an available car.
+7. Verify that its status changes to `Rented`.
+8. Try to rent the same vehicle again.
+9. Verify that the second rental is rejected.
+10. Try a rental duration below 1 day.
+11. Try a rental duration above 30 days.
+12. Verify that both invalid durations are rejected.
+13. Rent a truck without a special licence.
+14. Verify that the rental is rejected.
+15. Rent a truck with a special licence.
+16. Verify that the rental is accepted.
+17. Rent a motorcycle for a customer under 18.
+18. Verify that the rental is rejected.
+19. Rent an electric vehicle with a battery level below 30%.
+20. Verify that the rental is rejected.
+21. Return a vehicle with an active rental.
+22. Verify that the vehicle status changes to `Available`.
+23. Verify that the rental status changes to `Closed`.
+24. Verify the basic rental cost.
+25. Verify the number of late days.
+26. Verify the late-return penalty.
+27. Verify the total rental cost.
+28. Generate rental-expiry reminders.
+29. Log out.
+30. Verify that protected actions require another login.
+31. Run `mvn clean verify`.
+32. Confirm that all tests pass.
+33. Review the JaCoCo coverage report.
+
+## GitHub Actions CI/CD
+
+GitHub Actions CI/CD is required by the project specification.
+
+The workflow should be stored under:
+
+```text
+.github/workflows
+```
+
+For example:
+
+```text
+.github/workflows/maven.yml
+```
+
+The workflow should perform at least the following operations:
+
+* Check out the repository.
+* Configure the required Java version.
+* Build the Maven project.
+* Run all JUnit tests.
+* Generate the JaCoCo coverage report.
+* Fail when the build or tests fail.
+
+At the time of writing, this integration still needs to be added to the repository.
+
+## SonarQube
+
+SonarQube analysis is required by the project specification.
+
+The project should be configured to analyze:
+
+* Bugs
+* Vulnerabilities
+* Code smells
+* Duplicated code
+* Maintainability
+* Test coverage
+
+At the time of writing, SonarQube integration still needs to be added to the repository.
+
+## Requirements Checklist
+
+The requirements checklist is stored in:
 
 ```text
 docs/REQUIREMENTS_CHECKLIST.md
 ```
 
-## CI/CD
+The checklist should be updated after running the final tests, generating coverage, configuring CI/CD, configuring SonarQube, completing Javadocs, and exporting the UML diagram.
 
-CI/CD is not included according to the project instructions.
+## AI Refactoring Report
+
+The project specification requires an AI refactoring report containing:
+
+1. Files refactored with AI assistance
+2. Prompts used
+3. Original code
+4. Refactored code
+5. Reasons for accepting or rejecting the suggestions
+
+The report should be added before submission, for example:
+
+```text
+docs/AI_REFACTORING_REPORT.md
+```
+
+The report must accurately describe the work performed and follow the university’s AI-usage policy.
+
+## Current Submission Status
+
+The main Sprint 1–5 functionality is implemented.
+
+Before final submission, verify or complete the following:
+
+* Run the complete Maven test suite.
+* Record the real test result.
+* Generate and review the JaCoCo coverage report.
+* Add Javadocs to all required source elements.
+* Export the UML diagram to PNG or PDF.
+* Configure GitHub Actions CI/CD.
+* Configure SonarQube.
+* Add the AI Refactoring Report.
+* Confirm that all required files are committed and pushed to GitHub.
