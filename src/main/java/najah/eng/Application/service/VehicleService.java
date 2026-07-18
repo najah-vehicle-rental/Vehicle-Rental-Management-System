@@ -10,14 +10,25 @@ public class VehicleService {
     private final VehicleRepository vehicleRepository;
 
     public VehicleService() {
-        vehicleRepository = new VehicleRepository();
+        this(new VehicleRepository());
+    }
+
+    public VehicleService(
+            VehicleRepository vehicleRepository) {
+
+        this.vehicleRepository =
+                vehicleRepository;
     }
 
     public ArrayList<Vehicle> getAvailableVehicles() {
-        return vehicleRepository.findAvailableVehicles();
+        return vehicleRepository
+                .findAvailableVehicles();
     }
 
-    public Vehicle getVehicleById(String vehicleId) {
-        return vehicleRepository.findById(vehicleId);
+    public Vehicle getVehicleById(
+            String vehicleId) {
+
+        return vehicleRepository
+                .findById(vehicleId);
     }
 }

@@ -3,6 +3,10 @@ package najah.eng.Application.presentation;
 import najah.eng.Application.Domain.Rental;
 import najah.eng.Application.Domain.Vehicle;
 import najah.eng.Application.Persistence.RentalRepository;
+import najah.eng.Application.Persistence.VehicleRepository;
+import najah.eng.Application.observer.AuditLogObserver;
+import najah.eng.Application.observer.EmailRentalObserver;
+import najah.eng.Application.observer.RentalEventPublisher;
 import najah.eng.Application.service.AuthService;
 import najah.eng.Application.service.BillingService;
 import najah.eng.Application.service.EmailNotificationService;
@@ -24,17 +28,52 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
 
-        AuthService authService = new AuthService();
-        VehicleService vehicleService = new VehicleService();
-        RentalService rentalService = new RentalService();
-        ReturnService returnService = new ReturnService();
-        BillingService billingService = new BillingService();
+        VehicleRepository vehicleRepository =
+                new VehicleRepository();
 
         RentalRepository rentalRepository =
                 new RentalRepository();
 
         NotificationService notificationService =
                 new EmailNotificationService();
+
+        RentalEventPublisher eventPublisher =
+                new RentalEventPublisher();
+
+        eventPublisher.addObserver(
+                new EmailRentalObserver(
+                        notificationService
+                )
+        );
+
+        eventPublisher.addObserver(
+                new AuditLogObserver()
+        );
+
+        AuthService authService =
+                new AuthService();
+
+        VehicleService vehicleService =
+                new VehicleService(
+                        vehicleRepository
+                );
+
+        RentalService rentalService =
+                new RentalService(
+                        vehicleRepository,
+                        rentalRepository,
+                        eventPublisher
+                );
+
+        ReturnService returnService =
+                new ReturnService(
+                        vehicleRepository,
+                        rentalRepository,
+                        eventPublisher
+                );
+
+        BillingService billingService =
+                new BillingService();
 
         ReminderService reminderService =
                 new ReminderService(
@@ -45,25 +84,38 @@ public class Main {
         while (true) {
             if (!authService.isLoggedIn()) {
                 System.out.print("Username: ");
-                String username = scanner.nextLine();
+                String username =
+                        scanner.nextLine();
 
                 System.out.print("Password: ");
-                String password = scanner.nextLine();
+                String password =
+                        scanner.nextLine();
 
-                if (authService.login(username, password)) {
-                    System.out.println("Login successful.");
+                if (authService.login(
+                        username,
+                        password
+                )) {
+                    System.out.println(
+                            "Login successful."
+                    );
                 } else {
-                    System.out.println("Invalid username or password.");
+                    System.out.println(
+                            "Invalid username or password."
+                    );
+
                     continue;
                 }
             }
 
             showMenu();
 
-            String choice = scanner.nextLine();
+            String choice =
+                    scanner.nextLine();
 
             if (choice.equals("1")) {
-                showAvailableVehicles(vehicleService);
+                showAvailableVehicles(
+                        vehicleService
+                );
 
             } else if (choice.equals("2")) {
                 rentVehicle(
@@ -80,17 +132,24 @@ public class Main {
                 );
 
             } else if (choice.equals("4")) {
-                generateReminders(reminderService);
+                generateReminders(
+                        reminderService
+                );
 
             } else if (choice.equals("5")) {
                 authService.logout();
-                System.out.println("Logged out.");
+
+                System.out.println(
+                        "Logged out."
+                );
 
             } else if (choice.equals("6")) {
                 break;
 
             } else {
-                System.out.println("Invalid choice.");
+                System.out.println(
+                        "Invalid choice."
+                );
             }
         }
 
@@ -98,12 +157,24 @@ public class Main {
     }
 
     private static void showMenu() {
-        System.out.println("1. View Available Vehicles");
-        System.out.println("2. Rent a Vehicle");
-        System.out.println("3. Return a Vehicle");
-        System.out.println("4. Generate Expiry Reminders");
-        System.out.println("5. Logout");
-        System.out.println("6. Exit");
+        System.out.println(
+                "1. View Available Vehicles"
+        );
+        System.out.println(
+                "2. Rent a Vehicle"
+        );
+        System.out.println(
+                "3. Return a Vehicle"
+        );
+        System.out.println(
+                "4. Generate Expiry Reminders"
+        );
+        System.out.println(
+                "5. Logout"
+        );
+        System.out.println(
+                "6. Exit"
+        );
         System.out.print("Choose: ");
     }
 
@@ -111,24 +182,48 @@ public class Main {
             VehicleService vehicleService) {
 
         ArrayList<Vehicle> vehicles =
-                vehicleService.getAvailableVehicles();
+                vehicleService
+                        .getAvailableVehicles();
 
         if (vehicles.isEmpty()) {
-            System.out.println("No available vehicles.");
+            System.out.println(
+                    "No available vehicles."
+            );
+
             return;
         }
 
-        System.out.println("Available Vehicles:");
+        System.out.println(
+                "Available Vehicles:"
+        );
 
         for (Vehicle vehicle : vehicles) {
-            System.out.println("ID: " + vehicle.getId());
-            System.out.println("Name: " + vehicle.getName());
-            System.out.println("Type: " + vehicle.getType());
-            System.out.println("Status: " + vehicle.getStatus());
+            System.out.println(
+                    "ID: " +
+                            vehicle.getId()
+            );
+
+            System.out.println(
+                    "Name: " +
+                            vehicle.getName()
+            );
+
+            System.out.println(
+                    "Type: " +
+                            vehicle.getType()
+            );
+
+            System.out.println(
+                    "Status: " +
+                            vehicle.getStatus()
+            );
+
             System.out.println(
                     "Rental Rule: " +
-                            vehicle.getRuleDescription()
+                            vehicle
+                                    .getRuleDescription()
             );
+
             System.out.println();
         }
     }
@@ -139,18 +234,28 @@ public class Main {
             VehicleService vehicleService) {
 
         System.out.print("Vehicle ID: ");
-        String vehicleId = scanner.nextLine();
+        String vehicleId =
+                scanner.nextLine();
 
         Vehicle vehicle =
-                vehicleService.getVehicleById(vehicleId);
+                vehicleService
+                        .getVehicleById(vehicleId);
 
         if (vehicle == null) {
-            System.out.println("Vehicle was not found.");
+            System.out.println(
+                    "Vehicle was not found."
+            );
+
             return;
         }
 
-        if (!rentalService.isVehicleAvailable(vehicleId)) {
-            System.out.println("Vehicle is not available.");
+        if (!rentalService
+                .isVehicleAvailable(vehicleId)) {
+
+            System.out.println(
+                    "Vehicle is not available or already has an active rental."
+            );
+
             return;
         }
 
@@ -165,32 +270,46 @@ public class Main {
         );
 
         System.out.print("Customer Name: ");
-        String customerName = scanner.nextLine();
+        String customerName =
+                scanner.nextLine();
 
         if (customerName.isBlank()) {
-            System.out.println("Customer name is required.");
+            System.out.println(
+                    "Customer name is required."
+            );
+
             return;
         }
 
         System.out.print("Customer Email: ");
-        String customerEmail = scanner.nextLine();
+        String customerEmail =
+                scanner.nextLine();
 
         if (customerEmail.isBlank()) {
-            System.out.println("Customer email is required.");
+            System.out.println(
+                    "Customer email is required."
+            );
+
             return;
         }
 
         System.out.print("Rental Days: ");
-        String daysText = scanner.nextLine();
+        String daysText =
+                scanner.nextLine();
 
         try {
             int rentalDays =
                     Integer.parseInt(daysText);
 
-            if (!rentalService.isRentalDurationValid(rentalDays)) {
+            if (!rentalService
+                    .isRentalDurationValid(
+                            rentalDays
+                    )) {
+
                 System.out.println(
                         "Rental period must be between 1 and 30 days."
                 );
+
                 return;
             }
 
@@ -198,21 +317,26 @@ public class Main {
             boolean hasSpecialLicense = false;
             int batteryLevel = 0;
 
-            if (vehicle.getType().equalsIgnoreCase("Truck")) {
+            if (vehicle.getType()
+                    .equalsIgnoreCase("Truck")) {
+
                 System.out.print(
                         "Does the customer have a special truck license? (yes/no): "
                 );
 
-                String licenseAnswer =
+                String answer =
                         scanner.nextLine().trim();
 
                 hasSpecialLicense =
-                        licenseAnswer.equalsIgnoreCase("yes")
-                                || licenseAnswer.equalsIgnoreCase("y");
+                        answer.equalsIgnoreCase("yes")
+                                ||
+                                answer.equalsIgnoreCase("y");
             }
 
             if (vehicle.getType()
-                    .equalsIgnoreCase("Electric Vehicle")) {
+                    .equalsIgnoreCase(
+                            "Electric Vehicle"
+                    )) {
 
                 System.out.print(
                         "Battery Level (0-100): "
@@ -225,9 +349,13 @@ public class Main {
             }
 
             if (vehicle.getType()
-                    .equalsIgnoreCase("Motorcycle")) {
+                    .equalsIgnoreCase(
+                            "Motorcycle"
+                    )) {
 
-                System.out.print("Customer Age: ");
+                System.out.print(
+                        "Customer Age: "
+                );
 
                 customerAge =
                         Integer.parseInt(
@@ -236,18 +364,21 @@ public class Main {
             }
 
             boolean ruleValid =
-                    rentalService.isTypeSpecificRuleValid(
-                            vehicleId,
-                            customerAge,
-                            hasSpecialLicense,
-                            batteryLevel
-                    );
+                    rentalService
+                            .isTypeSpecificRuleValid(
+                                    vehicleId,
+                                    customerAge,
+                                    hasSpecialLicense,
+                                    batteryLevel
+                            );
 
             if (!ruleValid) {
                 System.out.println(
                         "Rental rejected: " +
-                                vehicle.getRuleDescription()
+                                vehicle
+                                        .getRuleDescription()
                 );
+
                 return;
             }
 
@@ -267,7 +398,9 @@ public class Main {
                         "Vehicle rented successfully."
                 );
             } else {
-                System.out.println("Rental failed.");
+                System.out.println(
+                        "Rental failed."
+                );
             }
 
         } catch (NumberFormatException e) {
@@ -283,46 +416,55 @@ public class Main {
             BillingService billingService) {
 
         System.out.print("Vehicle ID: ");
-        String vehicleId = scanner.nextLine();
+        String vehicleId =
+                scanner.nextLine();
 
         Rental rental =
-                returnService.getActiveRental(vehicleId);
+                returnService
+                        .getActiveRental(vehicleId);
 
         if (rental == null) {
             System.out.println(
                     "Vehicle return failed. No active rental found."
             );
+
             return;
         }
 
-        LocalDate returnDate = LocalDate.now();
+        LocalDate returnDate =
+                LocalDate.now();
 
         double rentalCost =
-                billingService.calculateRentalCost(
-                        rental.getRentalDays()
-                );
+                billingService
+                        .calculateRentalCost(
+                                rental.getRentalDays()
+                        );
 
         long lateDays =
-                billingService.calculateLateDays(
-                        rental.getExpiryDate(),
-                        returnDate
-                );
+                billingService
+                        .calculateLateDays(
+                                rental.getExpiryDate(),
+                                returnDate
+                        );
 
         double latePenalty =
-                billingService.calculateLatePenalty(
-                        rental.getExpiryDate(),
-                        returnDate
-                );
+                billingService
+                        .calculateLatePenalty(
+                                rental.getExpiryDate(),
+                                returnDate
+                        );
 
         double totalCost =
-                billingService.calculateTotalCost(
-                        rental.getRentalDays(),
-                        rental.getExpiryDate(),
-                        returnDate
-                );
+                billingService
+                        .calculateTotalCost(
+                                rental.getRentalDays(),
+                                rental.getExpiryDate(),
+                                returnDate
+                        );
 
         boolean returned =
-                returnService.returnVehicle(vehicleId);
+                returnService
+                        .returnVehicle(vehicleId);
 
         if (returned) {
             System.out.println(
@@ -364,7 +506,8 @@ public class Main {
             System.out.printf(
                     Locale.US,
                     "Late Penalty Per Day: %.2f ILS%n",
-                    billingService.getLatePenaltyPerDay()
+                    billingService
+                            .getLatePenaltyPerDay()
             );
 
             System.out.printf(
@@ -390,7 +533,8 @@ public class Main {
             ReminderService reminderService) {
 
         int reminderCount =
-                reminderService.generateExpiryReminders();
+                reminderService
+                        .generateExpiryReminders();
 
         if (reminderCount == 0) {
             System.out.println(

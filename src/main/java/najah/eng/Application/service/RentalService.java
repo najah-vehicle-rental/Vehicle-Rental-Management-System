@@ -4,6 +4,9 @@ import najah.eng.Application.Domain.Rental;
 import najah.eng.Application.Domain.Vehicle;
 import najah.eng.Application.Persistence.RentalRepository;
 import najah.eng.Application.Persistence.VehicleRepository;
+import najah.eng.Application.observer.RentalEvent;
+import najah.eng.Application.observer.RentalEventPublisher;
+import najah.eng.Application.observer.RentalEventType;
 
 import java.time.LocalDate;
 
@@ -14,10 +17,40 @@ public class RentalService {
 
     private final VehicleRepository vehicleRepository;
     private final RentalRepository rentalRepository;
+    private final RentalEventPublisher eventPublisher;
 
     public RentalService() {
-        vehicleRepository = new VehicleRepository();
-        rentalRepository = new RentalRepository();
+        this(
+                new VehicleRepository(),
+                new RentalRepository(),
+                new RentalEventPublisher()
+        );
+    }
+
+    public RentalService(
+            VehicleRepository vehicleRepository,
+            RentalRepository rentalRepository) {
+
+        this(
+                vehicleRepository,
+                rentalRepository,
+                new RentalEventPublisher()
+        );
+    }
+
+    public RentalService(
+            VehicleRepository vehicleRepository,
+            RentalRepository rentalRepository,
+            RentalEventPublisher eventPublisher) {
+
+        this.vehicleRepository =
+                vehicleRepository;
+
+        this.rentalRepository =
+                rentalRepository;
+
+        this.eventPublisher =
+                eventPublisher;
     }
 
     public boolean rentVehicle(
@@ -46,7 +79,9 @@ public class RentalService {
             boolean hasSpecialLicense,
             int batteryLevel) {
 
-        if (vehicleId == null || vehicleId.isBlank()) {
+        if (vehicleId == null ||
+                vehicleId.isBlank()) {
+
             return false;
         }
 
@@ -59,7 +94,17 @@ public class RentalService {
             return false;
         }
 
-        if (!vehicle.getStatus().equalsIgnoreCase("Available")) {
+        Rental activeRental =
+                rentalRepository
+                        .findActiveRentalByVehicleId(id);
+
+        if (activeRental != null) {
+            return false;
+        }
+
+        if (!vehicle.getStatus()
+                .equalsIgnoreCase("Available")) {
+
             return false;
         }
 
@@ -67,11 +112,15 @@ public class RentalService {
             return false;
         }
 
-        if (customerName == null || customerName.isBlank()) {
+        if (customerName == null ||
+                customerName.isBlank()) {
+
             return false;
         }
 
-        if (customerEmail == null || customerEmail.isBlank()) {
+        if (customerEmail == null ||
+                customerEmail.isBlank()) {
+
             return false;
         }
 
@@ -117,18 +166,39 @@ public class RentalService {
             return false;
         }
 
+        eventPublisher.notifyObservers(
+                new RentalEvent(
+                        RentalEventType.RENTED,
+                        rental
+                )
+        );
+
         return true;
     }
 
-    public boolean isVehicleAvailable(String vehicleId) {
-        if (vehicleId == null || vehicleId.isBlank()) {
+    public boolean isVehicleAvailable(
+            String vehicleId) {
+
+        if (vehicleId == null ||
+                vehicleId.isBlank()) {
+
             return false;
         }
 
+        String id = vehicleId.trim();
+
         Vehicle vehicle =
-                vehicleRepository.findById(vehicleId.trim());
+                vehicleRepository.findById(id);
 
         if (vehicle == null) {
+            return false;
+        }
+
+        Rental activeRental =
+                rentalRepository
+                        .findActiveRentalByVehicleId(id);
+
+        if (activeRental != null) {
             return false;
         }
 
@@ -136,7 +206,9 @@ public class RentalService {
                 .equalsIgnoreCase("Available");
     }
 
-    public boolean isRentalDurationValid(int rentalDays) {
+    public boolean isRentalDurationValid(
+            int rentalDays) {
+
         return rentalDays >= MIN_RENTAL_DAYS
                 && rentalDays <= MAX_RENTAL_DAYS;
     }
@@ -147,12 +219,16 @@ public class RentalService {
             boolean hasSpecialLicense,
             int batteryLevel) {
 
-        if (vehicleId == null || vehicleId.isBlank()) {
+        if (vehicleId == null ||
+                vehicleId.isBlank()) {
+
             return false;
         }
 
         Vehicle vehicle =
-                vehicleRepository.findById(vehicleId.trim());
+                vehicleRepository.findById(
+                        vehicleId.trim()
+                );
 
         if (vehicle == null) {
             return false;
