@@ -1,0 +1,415 @@
+@startuml
+
+title Vehicle Rental Management System - Complete UML
+
+left to right direction
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "Domain" {
+
+    abstract class Vehicle {
+        - id : String
+        - name : String
+        - status : String
+        - rentalRuleStrategy : RentalRuleStrategy
+        + getId() : String
+        + getName() : String
+        + getStatus() : String
+        + getType() : String
+        + isRentalAllowed(age, license, battery) : boolean
+        + getRuleDescription() : String
+    }
+
+    class Car {
+        + getType() : String
+    }
+
+    class Van {
+        + getType() : String
+    }
+
+    class Truck {
+        + getType() : String
+    }
+
+    class Motorcycle {
+        + getType() : String
+    }
+
+    class ElectricVehicle {
+        + getType() : String
+    }
+
+    class RentalRequirements {
+        - customerAge : int
+        - specialLicense : boolean
+        - batteryLevel : int
+        + getCustomerAge() : int
+        + hasSpecialLicense() : boolean
+        + getBatteryLevel() : int
+    }
+
+    class Rental {
+        - vehicleId : String
+        - customerName : String
+        - customerEmail : String
+        - rentalDays : int
+        - expiryDate : LocalDate
+        - status : String
+        + getVehicleId() : String
+        + getCustomerName() : String
+        + getCustomerEmail() : String
+        + getRentalDays() : int
+        + getExpiryDate() : LocalDate
+        + getStatus() : String
+    }
+
+    class Manager {
+        - username : String
+        - password : String
+        + getUsername() : String
+        + getPassword() : String
+    }
+}
+
+package "Strategy Pattern" {
+
+    interface RentalRuleStrategy {
+        + isRentalAllowed(requirements : RentalRequirements) : boolean
+        + getRuleDescription() : String
+    }
+
+    class DefaultRentalRuleStrategy {
+        + isRentalAllowed(requirements) : boolean
+        + getRuleDescription() : String
+    }
+
+    class TruckLicenseStrategy {
+        + isRentalAllowed(requirements) : boolean
+        + getRuleDescription() : String
+    }
+
+    class MotorcycleAgeStrategy {
+        - MINIMUM_AGE : int
+        + isRentalAllowed(requirements) : boolean
+        + getRuleDescription() : String
+    }
+
+    class ElectricBatteryStrategy {
+        - MINIMUM_BATTERY_LEVEL : int
+        - MAXIMUM_BATTERY_LEVEL : int
+        + isRentalAllowed(requirements) : boolean
+        + getRuleDescription() : String
+    }
+}
+
+package "Factory Pattern" {
+
+    class VehicleFactory {
+        + createVehicle(id, name, type, status) : Vehicle
+    }
+}
+
+package "Observer Pattern" {
+
+    interface RentalObserver {
+        + update(event : RentalEvent) : void
+    }
+
+    class RentalEventPublisher {
+        - observers : List<RentalObserver>
+        + addObserver(observer) : void
+        + removeObserver(observer) : void
+        + notifyObservers(event) : void
+        + getObserverCount() : int
+    }
+
+    class EmailRentalObserver {
+        - notificationService : NotificationService
+        + update(event) : void
+    }
+
+    class AuditLogObserver {
+        + update(event) : void
+    }
+
+    class RentalEvent {
+        - type : RentalEventType
+        - rental : Rental
+        - lateDays : long
+        + getType() : RentalEventType
+        + getRental() : Rental
+        + getLateDays() : long
+    }
+
+    enum RentalEventType {
+        RENTED
+        RETURNED
+        LATE_RETURNED
+    }
+}
+
+package "Persistence Layer" {
+
+    class ManagerRepository {
+        - filePath : Path
+        + findByCredentials(username, password) : Manager
+    }
+
+    class VehicleRepository {
+        - filePath : Path
+        - vehicleFactory : VehicleFactory
+        + findAvailableVehicles() : ArrayList<Vehicle>
+        + findById(vehicleId) : Vehicle
+        + updateStatus(vehicleId, status) : boolean
+    }
+
+    class RentalRepository {
+        - filePath : Path
+        + save(rental) : boolean
+        + findActiveRentals() : ArrayList<Rental>
+        + findActiveRentalByVehicleId(vehicleId) : Rental
+        + closeActiveRental(vehicleId) : boolean
+    }
+}
+
+package "Service Layer" {
+
+    class AuthService {
+        - managerRepository : ManagerRepository
+        - loggedIn : boolean
+        + login(username, password) : boolean
+        + logout() : void
+        + isLoggedIn() : boolean
+    }
+
+    class VehicleService {
+        - vehicleRepository : VehicleRepository
+        + getAvailableVehicles() : ArrayList<Vehicle>
+        + getVehicleById(vehicleId) : Vehicle
+    }
+
+    class RentalService {
+        - MIN_RENTAL_DAYS : int
+        - MAX_RENTAL_DAYS : int
+        - vehicleRepository : VehicleRepository
+        - rentalRepository : RentalRepository
+        - eventPublisher : RentalEventPublisher
+        + rentVehicle(vehicleId, name, email, days) : boolean
+        + rentVehicle(vehicleId, name, email, days, age, license, battery) : boolean
+        + isVehicleAvailable(vehicleId) : boolean
+        + isRentalDurationValid(days) : boolean
+        + isTypeSpecificRuleValid(vehicleId, age, license, battery) : boolean
+    }
+
+    class ReturnService {
+        - vehicleRepository : VehicleRepository
+        - rentalRepository : RentalRepository
+        - eventPublisher : RentalEventPublisher
+        + getActiveRental(vehicleId) : Rental
+        + returnVehicle(vehicleId) : boolean
+    }
+
+    class BillingService {
+        - DAILY_RATE : double
+        - LATE_PENALTY_PER_DAY : double
+        + calculateRentalCost(days) : double
+        + calculateLateDays(expiryDate, returnDate) : long
+        + calculateLatePenalty(expiryDate, returnDate) : double
+        + calculateTotalCost(days, expiryDate, returnDate) : double
+        + getDailyRate() : double
+        + getLatePenaltyPerDay() : double
+    }
+
+    interface NotificationService {
+        + sendEmail(to, subject, message) : void
+    }
+
+    class EmailNotificationService {
+        + sendEmail(to, subject, message) : void
+    }
+
+    class ReminderService {
+        - rentalRepository : RentalRepository
+        - notificationService : NotificationService
+        + generateExpiryReminders() : int
+    }
+}
+
+package "Presentation Layer" {
+
+    class Main {
+        + main(args : String[]) : void
+        - showMenu() : void
+        - showAvailableVehicles(vehicleService) : void
+        - rentVehicle(scanner, rentalService, vehicleService) : void
+        - returnVehicle(scanner, returnService, billingService) : void
+        - generateReminders(reminderService) : void
+    }
+}
+
+package "JUnit and Mockito Tests" {
+
+    class VehicleTypeRulesTest <<test>>
+    class VehicleFactoryTest <<test>>
+    class RentalRuleStrategyTest <<test>>
+
+    class RentalEventPublisherTest <<test>>
+    class EmailRentalObserverTest <<test>>
+
+    class ManagerRepositoryTest <<test>>
+    class VehicleRepositoryTest <<test>>
+    class RentalRepositoryTest <<test>>
+
+    class AuthServiceTest <<test>>
+    class BillingServiceTest <<test>>
+    class ReminderServiceTest <<test>>
+    class RentalServiceTest <<test>>
+    class ReturnServiceTest <<test>>
+}
+
+Vehicle <|-- Car
+Vehicle <|-- Van
+Vehicle <|-- Truck
+Vehicle <|-- Motorcycle
+Vehicle <|-- ElectricVehicle
+
+Vehicle o-- RentalRuleStrategy : uses
+
+RentalRuleStrategy <|.. DefaultRentalRuleStrategy
+RentalRuleStrategy <|.. TruckLicenseStrategy
+RentalRuleStrategy <|.. MotorcycleAgeStrategy
+RentalRuleStrategy <|.. ElectricBatteryStrategy
+
+DefaultRentalRuleStrategy ..> RentalRequirements
+TruckLicenseStrategy ..> RentalRequirements
+MotorcycleAgeStrategy ..> RentalRequirements
+ElectricBatteryStrategy ..> RentalRequirements
+
+Car --> DefaultRentalRuleStrategy
+Van --> DefaultRentalRuleStrategy
+Truck --> TruckLicenseStrategy
+Motorcycle --> MotorcycleAgeStrategy
+ElectricVehicle --> ElectricBatteryStrategy
+
+VehicleFactory ..> Vehicle
+VehicleFactory ..> Car
+VehicleFactory ..> Van
+VehicleFactory ..> Truck
+VehicleFactory ..> Motorcycle
+VehicleFactory ..> ElectricVehicle
+
+VehicleRepository --> VehicleFactory
+VehicleRepository ..> Vehicle
+RentalRepository ..> Rental
+ManagerRepository ..> Manager
+
+AuthService --> ManagerRepository
+VehicleService --> VehicleRepository
+
+RentalService --> VehicleRepository
+RentalService --> RentalRepository
+RentalService --> RentalEventPublisher
+RentalService ..> Vehicle
+RentalService ..> Rental
+
+ReturnService --> VehicleRepository
+ReturnService --> RentalRepository
+ReturnService --> RentalEventPublisher
+ReturnService ..> Vehicle
+ReturnService ..> Rental
+
+ReminderService --> RentalRepository
+ReminderService --> NotificationService
+
+NotificationService <|.. EmailNotificationService
+
+RentalEventPublisher "1" o-- "0..*" RentalObserver
+
+RentalObserver <|.. EmailRentalObserver
+RentalObserver <|.. AuditLogObserver
+
+EmailRentalObserver --> NotificationService
+
+RentalEvent --> RentalEventType
+RentalEvent --> Rental
+
+Main ..> AuthService
+Main ..> VehicleService
+Main ..> RentalService
+Main ..> ReturnService
+Main ..> BillingService
+Main ..> ReminderService
+Main ..> VehicleRepository
+Main ..> RentalRepository
+Main ..> RentalEventPublisher
+Main ..> EmailRentalObserver
+Main ..> AuditLogObserver
+Main ..> EmailNotificationService
+
+VehicleTypeRulesTest ..> Vehicle
+VehicleTypeRulesTest ..> Car
+VehicleTypeRulesTest ..> Van
+VehicleTypeRulesTest ..> Truck
+VehicleTypeRulesTest ..> Motorcycle
+VehicleTypeRulesTest ..> ElectricVehicle
+
+VehicleFactoryTest ..> VehicleFactory
+RentalRuleStrategyTest ..> RentalRuleStrategy
+
+RentalEventPublisherTest ..> RentalEventPublisher
+RentalEventPublisherTest ..> RentalObserver
+
+EmailRentalObserverTest ..> EmailRentalObserver
+EmailRentalObserverTest ..> NotificationService
+
+ManagerRepositoryTest ..> ManagerRepository
+VehicleRepositoryTest ..> VehicleRepository
+RentalRepositoryTest ..> RentalRepository
+
+AuthServiceTest ..> AuthService
+AuthServiceTest ..> ManagerRepository
+
+BillingServiceTest ..> BillingService
+
+ReminderServiceTest ..> ReminderService
+ReminderServiceTest ..> RentalRepository
+ReminderServiceTest ..> NotificationService
+
+RentalServiceTest ..> RentalService
+RentalServiceTest ..> VehicleRepository
+RentalServiceTest ..> RentalRepository
+RentalServiceTest ..> RentalEventPublisher
+
+ReturnServiceTest ..> ReturnService
+ReturnServiceTest ..> VehicleRepository
+ReturnServiceTest ..> RentalRepository
+ReturnServiceTest ..> RentalEventPublisher
+
+note right of RentalRuleStrategy
+Strategy Pattern
+
+Each vehicle delegates its
+rental validation to a
+separate strategy object.
+end note
+
+note right of RentalEventPublisher
+Observer Pattern
+
+Rental and return events
+are sent to all registered
+observer objects.
+end note
+
+note right of VehicleFactory
+Factory Pattern
+
+Creates the correct Vehicle
+subclass based on the type
+stored in vehicles.txt.
+end note
+
+@enduml

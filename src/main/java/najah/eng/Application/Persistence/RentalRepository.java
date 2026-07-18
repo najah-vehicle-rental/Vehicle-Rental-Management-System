@@ -13,15 +13,29 @@ import java.util.List;
 
 public class RentalRepository {
 
-    private final Path filePath = Path.of(
-            System.getProperty("user.dir"),
-            "src",
-            "main",
-            "resources",
-            "rentals.txt"
-    );
+    private final Path filePath;
+
+    public RentalRepository() {
+        this(
+                Path.of(
+                        System.getProperty("user.dir"),
+                        "src",
+                        "main",
+                        "resources",
+                        "rentals.txt"
+                )
+        );
+    }
+
+    public RentalRepository(Path filePath) {
+        this.filePath = filePath;
+    }
 
     public boolean save(Rental rental) {
+        if (rental == null) {
+            return false;
+        }
+
         String record =
                 rental.getVehicleId() + "," +
                         rental.getCustomerName() + "," +
@@ -42,46 +56,63 @@ public class RentalRepository {
             return true;
 
         } catch (IOException e) {
-            System.out.println("Error saving rental.");
-            System.out.println("Path: " + filePath);
+            System.out.println(
+                    "Error saving rental."
+            );
+
             return false;
         }
     }
 
     public ArrayList<Rental> findActiveRentals() {
-        ArrayList<Rental> rentals = new ArrayList<>();
+        ArrayList<Rental> rentals =
+                new ArrayList<>();
 
         if (!Files.exists(filePath)) {
-            System.out.println("Rentals file not found.");
-            System.out.println("Path: " + filePath);
             return rentals;
         }
 
         try {
-            List<String> lines = Files.readAllLines(filePath);
+            List<String> lines =
+                    Files.readAllLines(filePath);
 
             for (String line : lines) {
-                Rental rental = createRental(line);
+                Rental rental =
+                        createRental(line);
 
                 if (rental != null &&
-                        rental.getStatus().equalsIgnoreCase("Active")) {
+                        rental.getStatus()
+                                .equalsIgnoreCase("Active")) {
+
                     rentals.add(rental);
                 }
             }
 
         } catch (IOException e) {
-            System.out.println("Error reading rentals file.");
-            System.out.println("Path: " + filePath);
+            System.out.println(
+                    "Error reading rentals file."
+            );
         }
 
         return rentals;
     }
 
-    public Rental findActiveRentalByVehicleId(String vehicleId) {
-        ArrayList<Rental> rentals = findActiveRentals();
+    public Rental findActiveRentalByVehicleId(
+            String vehicleId) {
+
+        if (vehicleId == null ||
+                vehicleId.isBlank()) {
+
+            return null;
+        }
+
+        String id = vehicleId.trim();
+
+        ArrayList<Rental> rentals =
+                findActiveRentals();
 
         for (Rental rental : rentals) {
-            if (rental.getVehicleId().equals(vehicleId)) {
+            if (rental.getVehicleId().equals(id)) {
                 return rental;
             }
         }
@@ -89,25 +120,39 @@ public class RentalRepository {
         return null;
     }
 
-    public boolean closeActiveRental(String vehicleId) {
-        if (!Files.exists(filePath)) {
-            System.out.println("Rentals file not found.");
-            System.out.println("Path: " + filePath);
+    public boolean closeActiveRental(
+            String vehicleId) {
+
+        if (vehicleId == null ||
+                vehicleId.isBlank()) {
+
             return false;
         }
 
+        if (!Files.exists(filePath)) {
+            return false;
+        }
+
+        String id = vehicleId.trim();
+
         try {
-            List<String> lines = Files.readAllLines(filePath);
-            List<String> updatedLines = new ArrayList<>();
+            List<String> lines =
+                    Files.readAllLines(filePath);
+
+            List<String> updatedLines =
+                    new ArrayList<>();
+
             boolean closed = false;
 
             for (String line : lines) {
-                Rental rental = createRental(line);
+                Rental rental =
+                        createRental(line);
 
                 if (!closed &&
                         rental != null &&
-                        rental.getVehicleId().equals(vehicleId) &&
-                        rental.getStatus().equalsIgnoreCase("Active")) {
+                        rental.getVehicleId().equals(id) &&
+                        rental.getStatus()
+                                .equalsIgnoreCase("Active")) {
 
                     String updatedRecord =
                             rental.getVehicleId() + "," +
@@ -126,9 +171,6 @@ public class RentalRepository {
             }
 
             if (!closed) {
-                System.out.println(
-                        "No active rental found for vehicle " + vehicleId
-                );
                 return false;
             }
 
@@ -142,17 +184,22 @@ public class RentalRepository {
             return true;
 
         } catch (IOException e) {
-            System.out.println("Error closing rental.");
-            System.out.println("Path: " + filePath);
+            System.out.println(
+                    "Error closing rental."
+            );
+
             return false;
         }
     }
 
     private Rental createRental(String line) {
-        String[] parts = line.split(",");
+        if (line == null || line.isBlank()) {
+            return null;
+        }
+
+        String[] parts = line.split(",", -1);
 
         if (parts.length != 6) {
-            System.out.println("Invalid rental record: " + line);
             return null;
         }
 
@@ -161,13 +208,19 @@ public class RentalRepository {
                     parts[0].trim(),
                     parts[1].trim(),
                     parts[2].trim(),
-                    Integer.parseInt(parts[3].trim()),
-                    LocalDate.parse(parts[4].trim()),
+                    Integer.parseInt(
+                            parts[3].trim()
+                    ),
+                    LocalDate.parse(
+                            parts[4].trim()
+                    ),
                     parts[5].trim()
             );
 
-        } catch (NumberFormatException | DateTimeParseException e) {
-            System.out.println("Invalid rental record: " + line);
+        } catch (
+                NumberFormatException |
+                DateTimeParseException e) {
+
             return null;
         }
     }
