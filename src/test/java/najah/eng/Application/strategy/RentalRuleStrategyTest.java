@@ -25,6 +25,12 @@ public class RentalRuleStrategyTest {
                         requirements
                 )
         );
+
+        assertFalse(
+                strategy
+                        .getRuleDescription()
+                        .isBlank()
+        );
     }
 
     @Test
@@ -50,6 +56,12 @@ public class RentalRuleStrategyTest {
                                 0
                         )
                 )
+        );
+
+        assertFalse(
+                strategy
+                        .getRuleDescription()
+                        .isBlank()
         );
     }
 
@@ -97,6 +109,12 @@ public class RentalRuleStrategyTest {
                         )
                 )
         );
+
+        assertFalse(
+                strategy
+                        .getRuleDescription()
+                        .isBlank()
+        );
     }
 
     @Test
@@ -122,6 +140,12 @@ public class RentalRuleStrategyTest {
                                 0
                         )
                 )
+        );
+
+        assertFalse(
+                strategy
+                        .getRuleDescription()
+                        .isBlank()
         );
     }
 }

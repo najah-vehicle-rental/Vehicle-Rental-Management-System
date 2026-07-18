@@ -11,12 +11,30 @@ import najah.eng.Application.observer.RentalEventType;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * Provides the business logic required to return rented vehicles.
+ *
+ * <p>The service verifies that the vehicle is rented and that an
+ * active rental exists. It then changes the vehicle status to Available
+ * and closes the active rental.</p>
+ *
+ * <p>If closing the rental fails, the service restores the vehicle
+ * status to Rented.</p>
+ *
+ * <p>After a successful return, the service publishes either a
+ * {@link RentalEventType#RETURNED} event or a
+ * {@link RentalEventType#LATE_RETURNED} event.</p>
+ */
 public class ReturnService {
 
     private final VehicleRepository vehicleRepository;
     private final RentalRepository rentalRepository;
     private final RentalEventPublisher eventPublisher;
 
+    /**
+     * Creates a return service using the default repositories
+     * and a default event publisher.
+     */
     public ReturnService() {
         this(
                 new VehicleRepository(),
@@ -25,6 +43,12 @@ public class ReturnService {
         );
     }
 
+    /**
+     * Creates a return service using the supplied repositories.
+     *
+     * @param vehicleRepository repository used to access vehicle data
+     * @param rentalRepository repository used to access rental data
+     */
     public ReturnService(
             VehicleRepository vehicleRepository,
             RentalRepository rentalRepository) {
@@ -36,6 +60,13 @@ public class ReturnService {
         );
     }
 
+    /**
+     * Creates a return service using dependency injection.
+     *
+     * @param vehicleRepository repository used to access vehicle data
+     * @param rentalRepository repository used to access rental data
+     * @param eventPublisher publisher used to notify return observers
+     */
     public ReturnService(
             VehicleRepository vehicleRepository,
             RentalRepository rentalRepository,
@@ -51,6 +82,12 @@ public class ReturnService {
                 eventPublisher;
     }
 
+    /**
+     * Finds the active rental associated with a vehicle.
+     *
+     * @param vehicleId the ID of the vehicle
+     * @return the active rental, or null when no active rental exists
+     */
     public Rental getActiveRental(
             String vehicleId) {
 
@@ -66,6 +103,20 @@ public class ReturnService {
                 );
     }
 
+    /**
+     * Returns a rented vehicle and closes its active rental.
+     *
+     * <p>The method changes the vehicle status to Available and closes
+     * the active rental record. If closing the rental fails, the vehicle
+     * status is restored to Rented.</p>
+     *
+     * <p>A normal return publishes a RETURNED event. A return after
+     * the expiry date publishes a LATE_RETURNED event containing the
+     * number of late days.</p>
+     *
+     * @param vehicleId the ID of the vehicle being returned
+     * @return true when the return operation succeeds; otherwise false
+     */
     public boolean returnVehicle(
             String vehicleId) {
 

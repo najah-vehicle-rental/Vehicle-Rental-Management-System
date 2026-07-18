@@ -119,4 +119,57 @@ public class VehicleFactoryTest {
                 )
         );
     }
+
+    @Test
+    public void nullIdReturnsNull() {
+        assertNull(
+                factory.createVehicle(
+                        null,
+                        "Toyota",
+                        "Car",
+                        "Available"
+                )
+        );
+    }
+
+    @Test
+    public void nullNameReturnsNull() {
+        assertNull(
+                factory.createVehicle(
+                        "1",
+                        null,
+                        "Car",
+                        "Available"
+                )
+        );
+    }
+
+    @Test
+    public void nullStatusReturnsNull() {
+        assertNull(
+                factory.createVehicle(
+                        "1",
+                        "Toyota",
+                        "Car",
+                        null
+                )
+        );
+    }
+
+    @Test
+    public void typeMatchingIgnoresCase() {
+        Vehicle vehicle =
+                factory.createVehicle(
+                        "1",
+                        "Volvo",
+                        "truck",
+                        "Available"
+                );
+
+        assertInstanceOf(
+                Truck.class,
+                vehicle
+        );
+    }
+
 }

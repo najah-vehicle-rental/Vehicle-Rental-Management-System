@@ -7,10 +7,12 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class EmailRentalObserverTest {
 
@@ -91,5 +93,45 @@ public class EmailRentalObserverTest {
                         eq("Vehicle Returned Late"),
                         contains("3 day")
                 );
+    }
+
+    @Test
+    public void nullEventDoesNotSendEmail() {
+        observer.update(null);
+
+        verifyNoInteractions(
+                notificationService
+        );
+    }
+
+    @Test
+    public void eventWithoutRentalDoesNotSendEmail() {
+        RentalEvent event =
+                new RentalEvent(
+                        RentalEventType.RENTED,
+                        null
+                );
+
+        observer.update(event);
+
+        verifyNoInteractions(
+                notificationService
+        );
+    }
+
+    @Test
+    public void nullNotificationServiceIsHandled() {
+        EmailRentalObserver nullObserver =
+                new EmailRentalObserver(null);
+
+        RentalEvent event =
+                new RentalEvent(
+                        RentalEventType.RENTED,
+                        rental
+                );
+
+        assertDoesNotThrow(
+                () -> nullObserver.update(event)
+        );
     }
 }
