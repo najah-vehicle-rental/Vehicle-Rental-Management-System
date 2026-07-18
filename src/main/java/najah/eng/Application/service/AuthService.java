@@ -5,18 +5,34 @@ import najah.eng.Application.Persistence.ManagerRepository;
 
 public class AuthService {
 
-    private ManagerRepository managerRepository = new ManagerRepository();
-    private boolean loggedIn = false;
+    private final ManagerRepository managerRepository;
+    private boolean loggedIn;
 
-    public boolean login(String username, String password) {
-        Manager manager = managerRepository.findByUsername(username);
+    public AuthService() {
+        this(new ManagerRepository());
+    }
 
-        if (manager == null) {
-            loggedIn = false;
-            return false;
-        }
+    public AuthService(
+            ManagerRepository managerRepository) {
 
-        loggedIn = manager.getPassword().equals(password);
+        this.managerRepository =
+                managerRepository;
+
+        loggedIn = false;
+    }
+
+    public boolean login(
+            String username,
+            String password) {
+
+        Manager manager =
+                managerRepository.findByCredentials(
+                        username,
+                        password
+                );
+
+        loggedIn = manager != null;
+
         return loggedIn;
     }
 

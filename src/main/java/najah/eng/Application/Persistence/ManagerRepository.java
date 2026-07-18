@@ -2,36 +2,85 @@ package najah.eng.Application.Persistence;
 
 import najah.eng.Application.Domain.Manager;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 public class ManagerRepository {
 
-    public Manager findByUsername(String username) {
+    private final Path filePath;
 
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("managers.txt");
+    public ManagerRepository() {
+        this(
+                Path.of(
+                        System.getProperty("user.dir"),
+                        "src",
+                        "main",
+                        "resources",
+                        "managers.txt"
+                )
+        );
+    }
 
-        if (inputStream == null) {
+    public ManagerRepository(Path filePath) {
+        this.filePath = filePath;
+    }
+
+    public Manager findByCredentials(
+            String username,
+            String password) {
+
+        if (username == null ||
+                username.isBlank() ||
+                password == null ||
+                password.isBlank()) {
+
             return null;
         }
 
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+        if (!Files.exists(filePath)) {
+            return null;
+        }
 
-            String line;
+        try {
+            List<String> lines =
+                    Files.readAllLines(filePath);
 
-            while ((line = reader.readLine()) != null) {
+            for (String line : lines) {
+                if (line == null || line.isBlank()) {
+                    continue;
+                }
 
-                String[] parts = line.split(",");
+                String[] parts =
+                        line.split(",", -1);
 
-                if (parts.length == 2 && parts[0].trim().equals(username.trim())) {
-                    return new Manager(parts[0].trim(), parts[1].trim());
+                if (parts.length != 2) {
+                    continue;
+                }
+
+                String savedUsername =
+                        parts[0].trim();
+
+                String savedPassword =
+                        parts[1].trim();
+
+                if (savedUsername.equals(
+                        username.trim()
+                ) &&
+                        savedPassword.equals(
+                                password.trim()
+                        )) {
+
+                    return new Manager(
+                            savedUsername,
+                            savedPassword
+                    );
                 }
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            return null;
         }
 
         return null;
