@@ -10,8 +10,13 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class RentalRepository {
+
+    private static final Logger LOGGER =
+            Logger.getLogger(RentalRepository.class.getName());
 
     private final Path filePath;
 
@@ -56,8 +61,10 @@ public class RentalRepository {
             return true;
 
         } catch (IOException e) {
-            System.out.println(
-                    "Error saving rental."
+            LOGGER.log(
+                    Level.SEVERE,
+                    "Error saving rental.",
+                    e
             );
 
             return false;
@@ -89,8 +96,10 @@ public class RentalRepository {
             }
 
         } catch (IOException e) {
-            System.out.println(
-                    "Error reading rentals file."
+            LOGGER.log(
+                    Level.SEVERE,
+                    "Error reading rentals file.",
+                    e
             );
         }
 
@@ -184,8 +193,10 @@ public class RentalRepository {
             return true;
 
         } catch (IOException e) {
-            System.out.println(
-                    "Error closing rental."
+            LOGGER.log(
+                    Level.SEVERE,
+                    "Error closing rental.",
+                    e
             );
 
             return false;

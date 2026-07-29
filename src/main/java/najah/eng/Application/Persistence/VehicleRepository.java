@@ -12,6 +12,9 @@ import java.util.List;
 
 public class VehicleRepository {
 
+    private static final String VEHICLES_FILE_NOT_FOUND =
+            "Vehicles file not found.";
+
     private final Path filePath;
     private final VehicleFactory vehicleFactory;
 
@@ -49,7 +52,7 @@ public class VehicleRepository {
 
         if (!Files.exists(filePath)) {
             System.out.println(
-                    "Vehicles file not found."
+                    VEHICLES_FILE_NOT_FOUND
             );
             return vehicles;
         }
@@ -88,7 +91,7 @@ public class VehicleRepository {
 
         if (!Files.exists(filePath)) {
             System.out.println(
-                    "Vehicles file not found."
+                    VEHICLES_FILE_NOT_FOUND
             );
             return null;
         }
@@ -133,7 +136,7 @@ public class VehicleRepository {
 
         if (!Files.exists(filePath)) {
             System.out.println(
-                    "Vehicles file not found."
+                    VEHICLES_FILE_NOT_FOUND
             );
             return false;
         }
