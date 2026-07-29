@@ -170,6 +170,43 @@ public class RentalRepositoryTest {
         );
     }
 
+    @Test
+    public void saveReturnsFalseWhenFileCannotBeWritten() {
+        RentalRepository repository =
+                new RentalRepository(tempDirectory);
+
+        Rental rental = createRental(
+                "1",
+                "Active"
+        );
+
+        assertFalse(
+                repository.save(rental)
+        );
+    }
+
+    @Test
+    public void findActiveRentalsReturnsEmptyWhenFileCannotBeRead() {
+        RentalRepository repository =
+                new RentalRepository(tempDirectory);
+
+        assertTrue(
+                repository
+                        .findActiveRentals()
+                        .isEmpty()
+        );
+    }
+
+    @Test
+    public void closeActiveRentalReturnsFalseWhenFileCannotBeRead() {
+        RentalRepository repository =
+                new RentalRepository(tempDirectory);
+
+        assertFalse(
+                repository.closeActiveRental("1")
+        );
+    }
+
     private Rental createRental(
             String vehicleId,
             String status) {
