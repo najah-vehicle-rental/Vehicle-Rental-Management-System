@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -45,6 +46,20 @@ public class RentalServiceTest {
                         rentalRepository,
                         eventPublisher
                 );
+    }
+
+    @Test
+    public void constructorsCreateRentalService() {
+        assertNotNull(
+                new RentalService()
+        );
+
+        assertNotNull(
+                new RentalService(
+                        vehicleRepository,
+                        rentalRepository
+                )
+        );
     }
 
     @Test
@@ -94,6 +109,32 @@ public class RentalServiceTest {
                 .notifyObservers(
                         any(RentalEvent.class)
                 );
+    }
+
+    @Test
+    public void nullOrBlankVehicleIdIsRejected() {
+        assertFalse(
+                rentalService.rentVehicle(
+                        null,
+                        "Fadi",
+                        "fadi@example.com",
+                        5
+                )
+        );
+
+        assertFalse(
+                rentalService.rentVehicle(
+                        "   ",
+                        "Fadi",
+                        "fadi@example.com",
+                        5
+                )
+        );
+
+        verify(
+                vehicleRepository,
+                never()
+        ).findById(any());
     }
 
     @Test
@@ -236,6 +277,28 @@ public class RentalServiceTest {
     }
 
     @Test
+    public void nullCustomerNameIsRejected() {
+        Vehicle vehicle = new Car(
+                "1",
+                "Toyota Corolla",
+                "Available"
+        );
+
+        when(
+                vehicleRepository.findById("1")
+        ).thenReturn(vehicle);
+
+        assertFalse(
+                rentalService.rentVehicle(
+                        "1",
+                        null,
+                        "fadi@example.com",
+                        5
+                )
+        );
+    }
+
+    @Test
     public void blankCustomerEmailIsRejected() {
         Vehicle vehicle = new Car(
                 "1",
@@ -256,6 +319,70 @@ public class RentalServiceTest {
                 );
 
         assertFalse(result);
+    }
+
+    @Test
+    public void nullCustomerEmailIsRejected() {
+        Vehicle vehicle = new Car(
+                "1",
+                "Toyota Corolla",
+                "Available"
+        );
+
+        when(
+                vehicleRepository.findById("1")
+        ).thenReturn(vehicle);
+
+        assertFalse(
+                rentalService.rentVehicle(
+                        "1",
+                        "Fadi",
+                        null,
+                        5
+                )
+        );
+    }
+
+    @Test
+    public void vehicleStatusUpdateFailureIsRejected() {
+        Vehicle vehicle = new Car(
+                "1",
+                "Toyota Corolla",
+                "Available"
+        );
+
+        when(
+                vehicleRepository.findById("1")
+        ).thenReturn(vehicle);
+
+        when(
+                vehicleRepository.updateStatus(
+                        "1",
+                        "Rented"
+                )
+        ).thenReturn(false);
+
+        boolean result =
+                rentalService.rentVehicle(
+                        "1",
+                        "Fadi",
+                        "fadi@example.com",
+                        5
+                );
+
+        assertFalse(result);
+
+        verify(
+                rentalRepository,
+                never()
+        ).save(any(Rental.class));
+
+        verify(
+                eventPublisher,
+                never()
+        ).notifyObservers(
+                any(RentalEvent.class)
+        );
     }
 
     @Test
@@ -331,5 +458,191 @@ public class RentalServiceTest {
                 );
 
         assertFalse(result);
+    }
+
+    @Test
+    public void availableVehicleWithoutActiveRentalIsAvailable() {
+        Vehicle vehicle = new Car(
+                "1",
+                "Toyota Corolla",
+                "Available"
+        );
+
+        when(
+                vehicleRepository.findById("1")
+        ).thenReturn(vehicle);
+
+        when(
+                rentalRepository
+                        .findActiveRentalByVehicleId("1")
+        ).thenReturn(null);
+
+        assertTrue(
+                rentalService.isVehicleAvailable("1")
+        );
+    }
+
+    @Test
+    public void nullOrBlankVehicleIdIsNotAvailable() {
+        assertFalse(
+                rentalService.isVehicleAvailable(null)
+        );
+
+        assertFalse(
+                rentalService.isVehicleAvailable("   ")
+        );
+    }
+
+    @Test
+    public void missingVehicleIsNotAvailable() {
+        when(
+                vehicleRepository.findById("99")
+        ).thenReturn(null);
+
+        assertFalse(
+                rentalService.isVehicleAvailable("99")
+        );
+    }
+
+    @Test
+    public void vehicleWithActiveRentalIsNotAvailable() {
+        Vehicle vehicle = new Car(
+                "1",
+                "Toyota Corolla",
+                "Available"
+        );
+
+        Rental activeRental =
+                mock(Rental.class);
+
+        when(
+                vehicleRepository.findById("1")
+        ).thenReturn(vehicle);
+
+        when(
+                rentalRepository
+                        .findActiveRentalByVehicleId("1")
+        ).thenReturn(activeRental);
+
+        assertFalse(
+                rentalService.isVehicleAvailable("1")
+        );
+    }
+
+    @Test
+    public void rentedVehicleIsNotAvailable() {
+        Vehicle vehicle = new Car(
+                "1",
+                "Toyota Corolla",
+                "Rented"
+        );
+
+        when(
+                vehicleRepository.findById("1")
+        ).thenReturn(vehicle);
+
+        assertFalse(
+                rentalService.isVehicleAvailable("1")
+        );
+    }
+
+    @Test
+    public void rentalDurationBoundariesAreValidated() {
+        assertTrue(
+                rentalService.isRentalDurationValid(1)
+        );
+
+        assertTrue(
+                rentalService.isRentalDurationValid(30)
+        );
+
+        assertFalse(
+                rentalService.isRentalDurationValid(0)
+        );
+
+        assertFalse(
+                rentalService.isRentalDurationValid(31)
+        );
+    }
+
+    @Test
+    public void nullOrBlankVehicleIdFailsTypeSpecificRule() {
+        assertFalse(
+                rentalService.isTypeSpecificRuleValid(
+                        null,
+                        25,
+                        true,
+                        80
+                )
+        );
+
+        assertFalse(
+                rentalService.isTypeSpecificRuleValid(
+                        "   ",
+                        25,
+                        true,
+                        80
+                )
+        );
+    }
+
+    @Test
+    public void missingVehicleFailsTypeSpecificRule() {
+        when(
+                vehicleRepository.findById("99")
+        ).thenReturn(null);
+
+        assertFalse(
+                rentalService.isTypeSpecificRuleValid(
+                        "99",
+                        25,
+                        true,
+                        80
+                )
+        );
+    }
+
+    @Test
+    public void typeSpecificRuleReturnsVehicleDecision() {
+        Vehicle vehicle =
+                mock(Vehicle.class);
+
+        when(
+                vehicleRepository.findById("1")
+        ).thenReturn(vehicle);
+
+        when(
+                vehicle.isRentalAllowed(
+                        25,
+                        true,
+                        80
+                )
+        ).thenReturn(true);
+
+        when(
+                vehicle.isRentalAllowed(
+                        17,
+                        false,
+                        10
+                )
+        ).thenReturn(false);
+
+        assertTrue(
+                rentalService.isTypeSpecificRuleValid(
+                        "1",
+                        25,
+                        true,
+                        80
+                )
+        );
+
+        assertFalse(
+                rentalService.isTypeSpecificRuleValid(
+                        "1",
+                        17,
+                        false,
+                        10
+                )
+        );
     }
 }
