@@ -27,8 +27,19 @@ import java.time.temporal.ChronoUnit;
  */
 public class ReturnService {
 
+    /**
+     * Repository used to find vehicles and update their statuses.
+     */
     private final VehicleRepository vehicleRepository;
+
+    /**
+     * Repository used to find and close active rental records.
+     */
     private final RentalRepository rentalRepository;
+
+    /**
+     * Publisher used to notify observers after a successful return.
+     */
     private final RentalEventPublisher eventPublisher;
 
     /**
@@ -86,7 +97,8 @@ public class ReturnService {
      * Finds the active rental associated with a vehicle.
      *
      * @param vehicleId the ID of the vehicle
-     * @return the active rental, or null when no active rental exists
+     * @return the active rental, or {@code null} when no active
+     *         rental exists
      */
     public Rental getActiveRental(
             String vehicleId) {
@@ -115,7 +127,8 @@ public class ReturnService {
      * number of late days.</p>
      *
      * @param vehicleId the ID of the vehicle being returned
-     * @return true when the return operation succeeds; otherwise false
+     * @return {@code true} when the return operation succeeds;
+     *         otherwise {@code false}
      */
     public boolean returnVehicle(
             String vehicleId) {

@@ -18,17 +18,32 @@ import najah.eng.Application.strategy.RentalRuleStrategy;
  */
 public abstract class Vehicle {
 
+    /**
+     * The unique identifier of the vehicle.
+     */
     private final String id;
+
+    /**
+     * The display name or model of the vehicle.
+     */
     private final String name;
+
+    /**
+     * The current status of the vehicle.
+     */
     private final String status;
+
+    /**
+     * The strategy used to validate type-specific rental rules.
+     */
     private final RentalRuleStrategy rentalRuleStrategy;
 
     /**
      * Creates a vehicle with its basic information and rental rule strategy.
      *
-     * @param id the unique identifier of the vehicle
-     * @param name the vehicle model or display name
-     * @param status the current vehicle status
+     * @param id                 the unique identifier of the vehicle
+     * @param name               the vehicle model or display name
+     * @param status             the current vehicle status
      * @param rentalRuleStrategy the strategy used to validate rental rules
      */
     protected Vehicle(
@@ -81,11 +96,11 @@ public abstract class Vehicle {
      * Checks whether the vehicle can be rented according to its
      * type-specific rental strategy.
      *
-     * @param customerAge the age of the customer
+     * @param customerAge      the age of the customer
      * @param hasSpecialLicense whether the customer has a special license
-     * @param batteryLevel the battery level used for electric vehicles
-     * @return true when the rental requirements are satisfied;
-     * otherwise false
+     * @param batteryLevel     the battery level used for electric vehicles
+     * @return {@code true} when the rental requirements are satisfied;
+     *         otherwise {@code false}
      */
     public boolean isRentalAllowed(
             int customerAge,
@@ -99,8 +114,7 @@ public abstract class Vehicle {
                         batteryLevel
                 );
 
-        return rentalRuleStrategy
-                .isRentalAllowed(requirements);
+        return rentalRuleStrategy.isRentalAllowed(requirements);
     }
 
     /**
@@ -109,7 +123,6 @@ public abstract class Vehicle {
      * @return the type-specific rental rule description
      */
     public String getRuleDescription() {
-        return rentalRuleStrategy
-                .getRuleDescription();
+        return rentalRuleStrategy.getRuleDescription();
     }
 }

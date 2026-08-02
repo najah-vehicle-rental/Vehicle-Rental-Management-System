@@ -13,13 +13,31 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Provides file-based persistence operations for rental records.
+ *
+ * <p>The repository saves rentals, reads active rentals, searches for
+ * active rentals by vehicle ID, and closes completed rental records.</p>
+ */
 public class RentalRepository {
 
+    /**
+     * Logger used to report file-access errors.
+     */
     private static final Logger LOGGER =
             Logger.getLogger(RentalRepository.class.getName());
 
+    /**
+     * The path of the text file containing rental records.
+     */
     private final Path filePath;
 
+    /**
+     * Creates a rental repository using the default rentals file.
+     *
+     * <p>The default file is located at
+     * {@code src/main/resources/rentals.txt}.</p>
+     */
     public RentalRepository() {
         this(
                 Path.of(
@@ -32,10 +50,22 @@ public class RentalRepository {
         );
     }
 
+    /**
+     * Creates a rental repository using a specified file.
+     *
+     * @param filePath the path of the file containing rental records
+     */
     public RentalRepository(Path filePath) {
         this.filePath = filePath;
     }
 
+    /**
+     * Appends a rental record to the rentals file.
+     *
+     * @param rental the rental to save
+     * @return {@code true} when the rental is saved successfully;
+     *         otherwise {@code false}
+     */
     public boolean save(Rental rental) {
         if (rental == null) {
             return false;
@@ -71,6 +101,14 @@ public class RentalRepository {
         }
     }
 
+    /**
+     * Reads and returns all rental records whose status is Active.
+     *
+     * <p>Empty and malformed records are ignored. When the file does
+     * not exist, an empty list is returned.</p>
+     *
+     * @return a list containing all active rentals
+     */
     public ArrayList<Rental> findActiveRentals() {
         ArrayList<Rental> rentals =
                 new ArrayList<>();
@@ -106,6 +144,13 @@ public class RentalRepository {
         return rentals;
     }
 
+    /**
+     * Searches for an active rental using a vehicle identifier.
+     *
+     * @param vehicleId the identifier of the rented vehicle
+     * @return the matching active rental, or {@code null} when no
+     *         matching active rental is found
+     */
     public Rental findActiveRentalByVehicleId(
             String vehicleId) {
 
@@ -129,6 +174,16 @@ public class RentalRepository {
         return null;
     }
 
+    /**
+     * Changes the first active rental for a vehicle to Closed.
+     *
+     * <p>The complete rentals file is rewritten after the matching
+     * rental record has been updated.</p>
+     *
+     * @param vehicleId the identifier of the rented vehicle
+     * @return {@code true} when an active rental is found and closed;
+     *         otherwise {@code false}
+     */
     public boolean closeActiveRental(
             String vehicleId) {
 
@@ -203,6 +258,17 @@ public class RentalRepository {
         }
     }
 
+    /**
+     * Converts one text-file record into a rental object.
+     *
+     * <p>A valid rental record must contain six comma-separated values:
+     * vehicle ID, customer name, customer email, rental days,
+     * expiry date, and status.</p>
+     *
+     * @param line the text-file record to convert
+     * @return the created rental, or {@code null} when the record
+     *         is empty, malformed, or contains invalid values
+     */
     private Rental createRental(String line) {
         if (line == null || line.isBlank()) {
             return null;

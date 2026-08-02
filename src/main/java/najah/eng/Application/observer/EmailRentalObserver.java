@@ -3,17 +3,37 @@ package najah.eng.Application.observer;
 import najah.eng.Application.Domain.Rental;
 import najah.eng.Application.service.NotificationService;
 
+/**
+ * Observes rental events and sends the appropriate email notification
+ * to the customer.
+ */
 public class EmailRentalObserver
         implements RentalObserver {
 
+    /**
+     * The notification service used to send customer emails.
+     */
     private final NotificationService notificationService;
 
+    /**
+     * Creates an email rental observer.
+     *
+     * @param notificationService the service used to send notifications
+     */
     public EmailRentalObserver(
             NotificationService notificationService) {
 
         this.notificationService = notificationService;
     }
 
+    /**
+     * Processes a rental event and sends a corresponding email.
+     *
+     * <p>No notification is sent when the event, rental, or notification
+     * service is null.</p>
+     *
+     * @param event the rental event to process
+     */
     @Override
     public void update(RentalEvent event) {
         if (event == null ||
