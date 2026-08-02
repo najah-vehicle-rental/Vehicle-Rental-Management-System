@@ -25,11 +25,29 @@ import java.time.LocalDate;
  */
 public class RentalService {
 
+    /**
+     * The minimum number of days allowed for a rental.
+     */
     private static final int MIN_RENTAL_DAYS = 1;
+
+    /**
+     * The maximum number of days allowed for a rental.
+     */
     private static final int MAX_RENTAL_DAYS = 30;
 
+    /**
+     * Repository used to search for vehicles and update their statuses.
+     */
     private final VehicleRepository vehicleRepository;
+
+    /**
+     * Repository used to search for and save rental records.
+     */
     private final RentalRepository rentalRepository;
+
+    /**
+     * Publisher used to notify observers after a successful rental.
+     */
     private final RentalEventPublisher eventPublisher;
 
     /**
@@ -93,7 +111,8 @@ public class RentalService {
      * @param customerName the customer name
      * @param customerEmail the customer email
      * @param rentalDays the number of rental days
-     * @return true when the rental succeeds; otherwise false
+     * @return {@code true} when the rental succeeds;
+     *         otherwise {@code false}
      */
     public boolean rentVehicle(
             String vehicleId,
@@ -136,8 +155,8 @@ public class RentalService {
      * @param customerAge the age of the customer
      * @param hasSpecialLicense whether the customer has a special license
      * @param batteryLevel the electric vehicle battery level
-     * @return true when the rental is completed successfully;
-     * otherwise false
+     * @return {@code true} when the rental is completed successfully;
+     *         otherwise {@code false}
      */
     public boolean rentVehicle(
             String vehicleId,
@@ -249,8 +268,8 @@ public class RentalService {
      * Checks whether a vehicle is available and has no active rental.
      *
      * @param vehicleId the ID of the vehicle
-     * @return true when the vehicle is available and not double-booked;
-     * otherwise false
+     * @return {@code true} when the vehicle is available and is not
+     *         double-booked; otherwise {@code false}
      */
     public boolean isVehicleAvailable(
             String vehicleId) {
@@ -286,8 +305,8 @@ public class RentalService {
      * Checks whether the requested rental duration is valid.
      *
      * @param rentalDays the requested number of rental days
-     * @return true when the duration is between 1 and 30 days;
-     * otherwise false
+     * @return {@code true} when the duration is between 1 and 30 days;
+     *         otherwise {@code false}
      */
     public boolean isRentalDurationValid(
             int rentalDays) {
@@ -304,8 +323,8 @@ public class RentalService {
      * @param customerAge the age of the customer
      * @param hasSpecialLicense whether the customer has a special license
      * @param batteryLevel the electric vehicle battery level
-     * @return true when the vehicle-specific rental rule is satisfied;
-     * otherwise false
+     * @return {@code true} when the vehicle-specific rental rule
+     *         is satisfied; otherwise {@code false}
      */
     public boolean isTypeSpecificRuleValid(
             String vehicleId,

@@ -21,8 +21,24 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
 
+/**
+ * Provides the console-based entry point and user interaction
+ * for the vehicle rental system.
+ */
 public class Main {
 
+    /**
+     * Creates the console application entry-point object.
+     */
+    public Main() {
+        // Default constructor.
+    }
+
+    /**
+     * Starts the console application and processes user choices.
+     *
+     * @param args the command-line arguments
+     */
     public static void main(String[] args) {
         Locale.setDefault(Locale.US);
 
@@ -84,10 +100,12 @@ public class Main {
         while (true) {
             if (!authService.isLoggedIn()) {
                 System.out.print("Username: ");
+
                 String username =
                         scanner.nextLine();
 
                 System.out.print("Password: ");
+
                 String password =
                         scanner.nextLine();
 
@@ -156,28 +174,42 @@ public class Main {
         scanner.close();
     }
 
+    /**
+     * Displays the main application menu.
+     */
     private static void showMenu() {
         System.out.println(
                 "1. View Available Vehicles"
         );
+
         System.out.println(
                 "2. Rent a Vehicle"
         );
+
         System.out.println(
                 "3. Return a Vehicle"
         );
+
         System.out.println(
                 "4. Generate Expiry Reminders"
         );
+
         System.out.println(
                 "5. Logout"
         );
+
         System.out.println(
                 "6. Exit"
         );
+
         System.out.print("Choose: ");
     }
 
+    /**
+     * Displays all currently available vehicles.
+     *
+     * @param vehicleService the service used to retrieve vehicles
+     */
     private static void showAvailableVehicles(
             VehicleService vehicleService) {
 
@@ -228,12 +260,21 @@ public class Main {
         }
     }
 
+    /**
+     * Reads rental information from the console and attempts
+     * to rent a vehicle.
+     *
+     * @param scanner the scanner used to read console input
+     * @param rentalService the service used to process rentals
+     * @param vehicleService the service used to retrieve vehicle data
+     */
     private static void rentVehicle(
             Scanner scanner,
             RentalService rentalService,
             VehicleService vehicleService) {
 
         System.out.print("Vehicle ID: ");
+
         String vehicleId =
                 scanner.nextLine();
 
@@ -270,6 +311,7 @@ public class Main {
         );
 
         System.out.print("Customer Name: ");
+
         String customerName =
                 scanner.nextLine();
 
@@ -282,6 +324,7 @@ public class Main {
         }
 
         System.out.print("Customer Email: ");
+
         String customerEmail =
                 scanner.nextLine();
 
@@ -294,6 +337,7 @@ public class Main {
         }
 
         System.out.print("Rental Days: ");
+
         String daysText =
                 scanner.nextLine();
 
@@ -314,7 +358,9 @@ public class Main {
             }
 
             int customerAge = 0;
+
             boolean hasSpecialLicense = false;
+
             int batteryLevel = 0;
 
             if (vehicle.getType()
@@ -410,12 +456,21 @@ public class Main {
         }
     }
 
+    /**
+     * Reads a vehicle identifier, processes the return,
+     * and displays billing details.
+     *
+     * @param scanner the scanner used to read console input
+     * @param returnService the service used to return vehicles
+     * @param billingService the service used to calculate costs
+     */
     private static void returnVehicle(
             Scanner scanner,
             ReturnService returnService,
             BillingService billingService) {
 
         System.out.print("Vehicle ID: ");
+
         String vehicleId =
                 scanner.nextLine();
 
@@ -529,6 +584,11 @@ public class Main {
         }
     }
 
+    /**
+     * Generates expiry reminders and displays the number created.
+     *
+     * @param reminderService the service used to generate reminders
+     */
     private static void generateReminders(
             ReminderService reminderService) {
 
